@@ -1,0 +1,128 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Res,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
+
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto) {
+    const user = await this.authService.register(registerDto);
+
+    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+      user;
+
+    return {
+      message: 'Registration successful. Please check your email to verify your account.',
+      user: userResponse,
+    };
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(loginDto);
+
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 menit
+    });
+
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
+    });
+
+    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+      user;
+
+    return {
+      message: 'Login successful',
+      accessToken,
+      refreshToken,
+      user: userResponse,
+    };
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('access_token');
+    response.clearCookie('refresh_token');
+
+    return {
+      message: 'Logged out successfully',
+    };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getCurrentUser(@Request() req) {
+    const user = await this.authService.getUserFromToken(req.user.id);
+
+    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+      user;
+
+    return userResponse;
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    await this.authService.verifyEmail(verifyEmailDto.token);
+
+    return {
+      message: 'Email verified successfully',
+    };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+
+    return {
+      message: 'Password reset email sent',
+    };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+
+    return {
+      message: 'Password reset successfully',
+    };
+  }
+}
