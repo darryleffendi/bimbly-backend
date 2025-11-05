@@ -40,9 +40,9 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { resetToken: token } });
   }
 
-  async uploadAvatar(userId: string, filename: string): Promise<User> {
+  async uploadAvatar(userId: string, base64Image: string): Promise<User> {
     const user = await this.findById(userId);
-    user.profileImageUrl = `/uploads/avatars/${filename}`;
+    user.profileImageUrl = base64Image;
     return this.usersRepository.save(user);
   }
 

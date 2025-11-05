@@ -30,7 +30,7 @@ export class User {
   @Column({ name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ name: 'profile_image_url', nullable: true })
+  @Column({ name: 'profile_image_url', type: 'text', nullable: true })
   profileImageUrl?: string;
 
   @Column({ name: 'is_email_verified', default: false })
