@@ -39,4 +39,24 @@ export class UsersService {
   async findByResetToken(token: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { resetToken: token } });
   }
+
+  async uploadAvatar(userId: string, base64Image: string): Promise<User> {
+    const user = await this.findById(userId);
+    user.profileImageUrl = base64Image;
+    return this.usersRepository.save(user);
+  }
+
+  async updateProfile(userId: string, updates: { fullName?: string; phoneNumber?: string }): Promise<User> {
+    const user = await this.findById(userId);
+
+    if (updates.fullName) {
+      user.fullName = updates.fullName;
+    }
+
+    if (updates.phoneNumber) {
+      user.phoneNumber = updates.phoneNumber;
+    }
+
+    return this.usersRepository.save(user);
+  }
 }
