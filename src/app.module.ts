@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -7,6 +7,14 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { StudentsModule } from './modules/students/students.module';
 import { TutorsModule } from './modules/tutors/tutors.module';
+
+// Polyfill for crypto.randomUUID in Node.js 18
+if (!globalThis.crypto?.randomUUID) {
+  globalThis.crypto = {
+    ...globalThis.crypto,
+    randomUUID: () => require('crypto').randomUUID()
+  } as any;
+}
 
 @Module({
   imports: [
@@ -19,13 +27,15 @@ import { TutorsModule } from './modules/tutors/tutors.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
+        port: parseInt(configService.get('DB_PORT') || '5433'),
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('NODE_ENV') === 'development',
         logging: configService.get('NODE_ENV') === 'development',
+        retryAttempts: 10,
+        retryDelay: 3000,
       }),
       inject: [ConfigService],
     }),
