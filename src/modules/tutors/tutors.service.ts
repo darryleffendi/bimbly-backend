@@ -13,6 +13,7 @@ import {
   AvailabilityResponseDto,
   ReviewsResponseDto,
 } from './dto/tutor-availability.dto';
+import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
 
 @Injectable()
 export class TutorsService {
