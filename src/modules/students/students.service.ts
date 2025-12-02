@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { StudentProfile } from './entities/student-profile.entity';
 import { CreateStudentProfileDto } from './dto/create-student-profile.dto';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
+import { StudentProfileResponseDto } from './dto/student-profile-response.dto';
 
 @Injectable()
 export class StudentsService {
@@ -29,15 +30,22 @@ export class StudentsService {
     return this.studentProfileRepository.save(profile);
   }
 
-  async getProfile(userId: string): Promise<StudentProfile> {
+  async getProfileDto(userId: string): Promise<StudentProfileResponseDto> {
     const profile = await this.studentProfileRepository.findOne({
       where: { userId },
-      relations: ['user'],
     });
 
     if (!profile) {
       throw new NotFoundException('Student profile not found');
     }
+
+    return new StudentProfileResponseDto(profile);
+  }
+
+  async findProfileByUserId(userId: string): Promise<StudentProfile | null> {
+    const profile = await this.studentProfileRepository.findOne({
+      where: { userId },
+    });
 
     return profile;
   }
@@ -52,9 +60,18 @@ export class StudentsService {
   }
 
   async updateProfile(userId: string, updateDto: UpdateStudentProfileDto): Promise<StudentProfile> {
-    const profile = await this.getProfile(userId);
+    let profile = await this.studentProfileRepository.findOne({
+      where: { userId },
+    });
 
-    Object.assign(profile, updateDto);
+    if (!profile) {
+      profile = this.studentProfileRepository.create({
+        userId,
+        ...updateDto,
+      });
+    } else {
+      Object.assign(profile, updateDto);
+    }
 
     return this.studentProfileRepository.save(profile);
   }

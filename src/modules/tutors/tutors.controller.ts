@@ -2,22 +2,18 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
   Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   Request,
-  HttpCode,
-  HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { TutorsService } from './tutors.service';
-import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
-import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
+import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -37,22 +33,8 @@ export class TutorsController {
 
   @Get('profile')
   @Roles('tutor')
-  async getProfile(@Request() req) {
-    const profile = await this.tutorsService.getOrCreateProfile(req.user.id);
-    return profile;
-  }
-
-  @Post('profile')
-  @Roles('tutor')
-  @HttpCode(HttpStatus.CREATED)
-  async createProfile(@Request() req, @Body() createDto: CreateTutorProfileDto) {
-    return this.tutorsService.createProfile(req.user.id, createDto);
-  }
-
-  @Patch('profile')
-  @Roles('tutor')
-  async updateProfile(@Request() req, @Body() updateDto: UpdateTutorProfileDto) {
-    return this.tutorsService.updateProfile(req.user.id, updateDto);
+  async getProfile(@Request() req): Promise<TutorProfileResponseDto> {
+    return this.tutorsService.getProfileDto(req.user.id);
   }
 
   @Post('upload-certification')

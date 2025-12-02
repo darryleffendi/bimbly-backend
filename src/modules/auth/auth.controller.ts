@@ -17,6 +17,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -84,13 +85,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getCurrentUser(@Request() req) {
-    const user = await this.authService.getUserFromToken(req.user.id);
-
-    const { passwordHash, verificationToken, resetToken, ...userResponse } =
-      user;
-
-    return userResponse;
+  async getCurrentUser(@Request() req): Promise<UserResponseDto> {
+    return this.authService.getUserProfile(req.user.id);
   }
 
   @Post('verify-email')

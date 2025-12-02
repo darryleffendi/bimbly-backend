@@ -13,6 +13,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -174,5 +175,9 @@ export class AuthService {
 
   async getUserFromToken(userId: string): Promise<User> {
     return this.usersService.findById(userId);
+  }
+
+  async getUserProfile(userId: string): Promise<UserResponseDto> {
+    return this.usersService.getProfile(userId);
   }
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TutorProfile } from './entities/tutor-profile.entity';
 import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
 import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
+import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
 
 @Injectable()
 export class TutorsService {
@@ -29,15 +30,22 @@ export class TutorsService {
     return this.tutorProfileRepository.save(profile);
   }
 
-  async getProfile(userId: string): Promise<TutorProfile> {
+  async getProfileDto(userId: string): Promise<TutorProfileResponseDto> {
     const profile = await this.tutorProfileRepository.findOne({
       where: { userId },
-      relations: ['user'],
     });
 
     if (!profile) {
       throw new NotFoundException('Tutor profile not found');
     }
+
+    return new TutorProfileResponseDto(profile);
+  }
+
+  async findProfileByUserId(userId: string): Promise<TutorProfile | null> {
+    const profile = await this.tutorProfileRepository.findOne({
+      where: { userId },
+    });
 
     return profile;
   }
@@ -52,9 +60,18 @@ export class TutorsService {
   }
 
   async updateProfile(userId: string, updateDto: UpdateTutorProfileDto): Promise<TutorProfile> {
-    const profile = await this.getProfile(userId);
+    let profile = await this.tutorProfileRepository.findOne({
+      where: { userId },
+    });
 
-    Object.assign(profile, updateDto);
+    if (!profile) {
+      profile = this.tutorProfileRepository.create({
+        userId,
+        ...updateDto,
+      });
+    } else {
+      Object.assign(profile, updateDto);
+    }
 
     return this.tutorProfileRepository.save(profile);
   }
@@ -63,7 +80,13 @@ export class TutorsService {
     userId: string,
     schedule: Record<string, { start: string; end: string }[]>,
   ): Promise<TutorProfile> {
-    const profile = await this.getProfile(userId);
+    let profile = await this.tutorProfileRepository.findOne({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Tutor profile not found');
+    }
 
     profile.availabilitySchedule = schedule;
 
@@ -75,7 +98,13 @@ export class TutorsService {
     certificationName: string,
     fileUrl: string,
   ): Promise<TutorProfile> {
-    const profile = await this.getProfile(userId);
+    let profile = await this.tutorProfileRepository.findOne({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Tutor profile not found');
+    }
 
     if (!profile.certifications) {
       profile.certifications = [];
