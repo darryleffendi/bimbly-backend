@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import { StudentProfile } from '../../students/entities/student-profile.entity';
 import { Subject } from '../../subjects/entities/subject.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('student_academic_reports')
 @Unique(['studentId', 'grade', 'subjectId'])
@@ -11,9 +11,9 @@ export class AcademicReport {
   @Column({ name: 'student_id', type: 'uuid' })
   studentId: string;
 
-  @ManyToOne(() => StudentProfile)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'student_id' })
-  student: StudentProfile;
+  student: User;
 
   @Column({ type: 'integer' })
   grade: number;

@@ -12,7 +12,7 @@ export class AcademicReportsController {
 
   @Post()
   async create(@Request() req, @Body() createDto: CreateAcademicReportDto) {
-    const report = await this.academicReportsService.create(req.user.studentProfileId, createDto);
+    const report = await this.academicReportsService.create(req.user.id, createDto);
     return {
       ...report,
       averageScore: this.academicReportsService.calculateAverageScore(report.subtopicScores),
@@ -21,7 +21,7 @@ export class AcademicReportsController {
 
   @Get()
   async findAll(@Request() req) {
-    const reports = await this.academicReportsService.findAllByStudent(req.user.studentProfileId);
+    const reports = await this.academicReportsService.findAllByStudent(req.user.id);
     return reports.map(report => ({
       ...report,
       averageScore: this.academicReportsService.calculateAverageScore(report.subtopicScores),
@@ -30,7 +30,7 @@ export class AcademicReportsController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Request() req, @Body() updateDto: UpdateAcademicReportDto) {
-    const report = await this.academicReportsService.update(id, req.user.studentProfileId, updateDto);
+    const report = await this.academicReportsService.update(id, req.user.id, updateDto);
     return {
       ...report,
       averageScore: this.academicReportsService.calculateAverageScore(report.subtopicScores),
@@ -39,7 +39,7 @@ export class AcademicReportsController {
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req) {
-    await this.academicReportsService.remove(id, req.user.studentProfileId);
+    await this.academicReportsService.remove(id, req.user.id);
     return { message: 'Report deleted successfully' };
   }
 
