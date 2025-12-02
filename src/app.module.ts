@@ -8,6 +8,14 @@ import { AuthModule } from './modules/auth/auth.module';
 import { StudentsModule } from './modules/students/students.module';
 import { TutorsModule } from './modules/tutors/tutors.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SubjectsModule } from './modules/subjects/subjects.module';
+import { AcademicReportsModule } from './modules/academic-reports/academic-reports.module';
+import { SessionSummariesModule } from './modules/session-summaries/session-summaries.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { QuizTemplatesModule } from './modules/quiz-templates/quiz-templates.module';
+import { QuizAssignmentsModule } from './modules/quiz-assignments/quiz-assignments.module';
+import { StudentAnswersModule } from './modules/student-answers/student-answers.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 
 @Module({
   imports: [
@@ -35,6 +43,14 @@ import { AdminModule } from './modules/admin/admin.module';
     StudentsModule,
     TutorsModule,
     AdminModule,
+    BookingsModule,
+    SubjectsModule,
+    AcademicReportsModule,
+    SessionSummariesModule,
+    ReviewsModule,
+    QuizTemplatesModule,
+    QuizAssignmentsModule,
+    StudentAnswersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
