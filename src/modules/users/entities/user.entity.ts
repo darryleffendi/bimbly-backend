@@ -45,6 +45,15 @@ export class User {
   @Column({ name: 'reset_token_expires', nullable: true })
   resetTokenExpires?: Date;
 
+  @Column({ name: 'is_blocked', default: false })
+  isBlocked: boolean;
+
+  @Column({ name: 'blocked_at', type: 'timestamp', nullable: true })
+  blockedAt?: Date | null;
+
+  @Column({ name: 'block_reason', type: 'text', nullable: true })
+  blockReason?: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
