@@ -62,6 +62,10 @@ export class TutorApplicationsService {
     application.status = 'approved';
     application.reviewedAt = new Date();
     application.reviewedBy = adminId;
+    application.additionalInfoRequested = false;
+    application.requestMessage = undefined;
+    application.requestedAt = undefined;
+    application.requestedBy = undefined;
 
     await this.tutorProfilesRepository.update(application.tutorProfileId, { isApproved: true });
 
@@ -79,7 +83,34 @@ export class TutorApplicationsService {
     application.reviewedAt = new Date();
     application.reviewedBy = adminId;
     application.rejectionReason = rejectionReason;
+    application.additionalInfoRequested = false;
+    application.requestMessage = undefined;
+    application.requestedAt = undefined;
+    application.requestedBy = undefined;
 
     return this.applicationsRepository.save(application);
+  }
+
+  async requestAdditionalInfo(id: string, adminId: string, requestMessage: string): Promise<TutorApplication> {
+    const application = await this.getApplicationById(id);
+
+    if (application.status !== 'pending') {
+      throw new BadRequestException('Can only request info for pending applications');
+    }
+
+    application.additionalInfoRequested = true;
+    application.requestMessage = requestMessage;
+    application.requestedAt = new Date();
+    application.requestedBy = adminId;
+
+    return this.applicationsRepository.save(application);
+  }
+
+  async findByTutorProfileId(tutorProfileId: string): Promise<TutorApplication | null> {
+    return this.applicationsRepository.findOne({
+      where: { tutorProfileId },
+      relations: ['tutorProfile', 'tutorProfile.user', 'reviewer', 'requester'],
+      order: { submittedAt: 'DESC' },
+    });
   }
 }

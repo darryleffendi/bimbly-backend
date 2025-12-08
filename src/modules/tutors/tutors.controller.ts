@@ -8,6 +8,7 @@ import {
   UploadedFile,
   Request,
   BadRequestException,
+  NotFoundException,
   Query,
   Param,
   HttpStatus,
@@ -25,6 +26,7 @@ import { GetAvailabilityDto, GetReviewsDto } from './dto/tutor-availability.dto'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { TutorApplicationsService } from '../admin/tutor-applications.service';
 
 const certificationStorage = diskStorage({
   destination: './uploads/certifications',
@@ -36,7 +38,10 @@ const certificationStorage = diskStorage({
 
 @Controller('tutors')
 export class TutorsController {
-  constructor(private tutorsService: TutorsService) {}
+  constructor(
+    private tutorsService: TutorsService,
+    private tutorApplicationsService: TutorApplicationsService,
+  ) {}
 
   @Get()
   async searchTutors(@Query() query: SearchTutorsDto) {
@@ -119,5 +124,44 @@ export class TutorsController {
       certification: { name: certificationName, fileUrl },
       profile,
     };
+  }
+
+  @Post('profile/submit-application')
+  @Roles('tutor')
+  async submitApplication(@Request() req) {
+    const profile = await this.tutorsService.findProfileByUserId(req.user.id);
+
+    if (!profile) {
+      throw new BadRequestException('Please complete your profile first');
+    }
+
+    if (!profile.bio || !profile.subjects?.length || !profile.certifications?.length) {
+      throw new BadRequestException('Profile is incomplete. Please fill all required fields');
+    }
+
+    const application = await this.tutorApplicationsService.createApplication(profile.id);
+
+    return {
+      message: 'Application submitted successfully',
+      application,
+    };
+  }
+
+  @Get('application/status')
+  @Roles('tutor')
+  async getApplicationStatus(@Request() req) {
+    const profile = await this.tutorsService.findProfileByUserId(req.user.id);
+
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const application = await this.tutorApplicationsService.findByTutorProfileId(profile.id);
+
+    if (!application) {
+      throw new NotFoundException('No application found');
+    }
+
+    return application;
   }
 }

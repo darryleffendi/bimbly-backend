@@ -33,6 +33,22 @@ export class TutorApplication {
   @Column({ name: 'rejection_reason', type: 'text', nullable: true })
   rejectionReason?: string;
 
+  @Column({ name: 'additional_info_requested', type: 'boolean', default: false })
+  additionalInfoRequested: boolean;
+
+  @Column({ name: 'request_message', type: 'text', nullable: true })
+  requestMessage?: string;
+
+  @Column({ name: 'requested_at', type: 'timestamp', nullable: true })
+  requestedAt?: Date;
+
+  @Column({ name: 'requested_by', type: 'uuid', nullable: true })
+  requestedBy?: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'requested_by' })
+  requester?: User;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
