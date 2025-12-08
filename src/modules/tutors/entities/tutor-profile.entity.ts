@@ -55,6 +55,9 @@ export class TutorProfile {
   @Column({ name: 'total_reviews', type: 'integer', default: 0 })
   totalReviews: number;
 
+  @Column({ name: 'total_sessions', type: 'integer', default: 0 })
+  totalSessions: number;
+
   @Column({ name: 'is_approved', type: 'boolean', default: false })
   isApproved: boolean;
 

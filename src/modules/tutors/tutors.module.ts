@@ -12,6 +12,6 @@ import { AdminModule } from '../admin/admin.module';
   ],
   controllers: [TutorsController],
   providers: [TutorsService],
-  exports: [TutorsService],
+  exports: [TutorsService, TypeOrmModule],
 })
 export class TutorsModule {}
