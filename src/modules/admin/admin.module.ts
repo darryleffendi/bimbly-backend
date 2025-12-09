@@ -12,6 +12,6 @@ import { StudentProfile } from '../students/entities/student-profile.entity';
   imports: [TypeOrmModule.forFeature([TutorApplication, User, TutorProfile, StudentProfile])],
   controllers: [AdminController],
   providers: [AdminService, TutorApplicationsService],
-  exports: [TutorApplicationsService],
+  exports: [TutorApplicationsService, AdminService],
 })
 export class AdminModule {}
