@@ -127,6 +127,7 @@ export class TutorsController {
   }
 
   @Post('profile/submit-application')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('tutor')
   async submitApplication(@Request() req) {
     const profile = await this.tutorsService.findProfileByUserId(req.user.id);
@@ -148,6 +149,7 @@ export class TutorsController {
   }
 
   @Get('application/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('tutor')
   async getApplicationStatus(@Request() req) {
     const profile = await this.tutorsService.findProfileByUserId(req.user.id);
