@@ -23,6 +23,7 @@ import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
 import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
 import { SearchTutorsDto } from './dto/search-tutors.dto';
 import { GetAvailabilityDto, GetReviewsDto } from './dto/tutor-availability.dto';
+import { AvailableSlotsResponseDto } from './dto/available-slots.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -71,6 +72,17 @@ export class TutorsController {
   @Get(':id/availability')
   async getTutorAvailability(@Param('id') id: string, @Query() query: GetAvailabilityDto) {
     return this.tutorsService.getTutorAvailability(id, query.date);
+  }
+
+  @Get(':id/available-slots')
+  async getAvailableSlots(
+    @Param('id') id: string,
+    @Query('date') date: string,
+  ): Promise<AvailableSlotsResponseDto> {
+    if (!date) {
+      throw new BadRequestException('Date parameter is required');
+    }
+    return await this.tutorsService.getAvailableSlots(id, date);
   }
 
   @Post('profile')

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { TutorProfile } from './entities/tutor-profile.entity';
 import { CreateTutorProfileDto } from './dto/create-tutor-profile.dto';
 import { UpdateTutorProfileDto } from './dto/update-tutor-profile.dto';
@@ -14,12 +14,16 @@ import {
   ReviewsResponseDto,
 } from './dto/tutor-availability.dto';
 import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
+import { AvailableSlotsResponseDto } from './dto/available-slots.dto';
+import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 
 @Injectable()
 export class TutorsService {
   constructor(
     @InjectRepository(TutorProfile)
     private tutorProfileRepository: Repository<TutorProfile>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
   ) {}
 
   async createProfile(userId: string, createDto: CreateTutorProfileDto): Promise<TutorProfile> {
@@ -283,5 +287,79 @@ export class TutorsService {
         averageRating: 0,
       },
     };
+  }
+
+  async getAvailableSlots(tutorId: string, date: string): Promise<AvailableSlotsResponseDto> {
+    const profile = await this.getPublicProfile(tutorId);
+
+    const targetDate = new Date(date);
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[targetDate.getDay()];
+
+    const schedule = profile.availabilitySchedule || {};
+    const dayRanges = schedule[dayOfWeek] || [];
+
+    const allSlots: { start: string; end: string }[] = [];
+    for (const range of dayRanges) {
+      let current = this.timeToMinutes(range.start);
+      const end = this.timeToMinutes(range.end);
+      while (current + 60 <= end) {
+        allSlots.push({
+          start: this.minutesToTime(current),
+          end: this.minutesToTime(current + 60),
+        });
+        current += 60;
+      }
+    }
+
+    const bookings = await this.bookingRepository.find({
+      where: {
+        tutorId: profile.userId,
+        bookingDate: targetDate,
+        status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT]),
+      },
+    });
+
+    const availableSlots = allSlots.filter(slot => {
+      const slotStart = this.timeToMinutes(slot.start);
+      const slotEnd = this.timeToMinutes(slot.end);
+
+      for (const booking of bookings) {
+        const bookingStart = this.timeToMinutes(booking.startTime);
+        const bookingEnd = bookingStart + Number(booking.durationHours) * 60;
+
+        if (slotStart < bookingEnd && slotEnd > bookingStart) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    const now = new Date();
+    const isToday = targetDate.toDateString() === now.toDateString();
+    const filteredSlots = isToday
+      ? availableSlots.filter(slot => {
+          const slotStartMinutes = this.timeToMinutes(slot.start);
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          return slotStartMinutes > nowMinutes + 120;
+        })
+      : availableSlots;
+
+    return {
+      date,
+      dayOfWeek,
+      slots: filteredSlots,
+    };
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private minutesToTime(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 }

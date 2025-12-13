@@ -4,10 +4,11 @@ import { TutorProfile } from './entities/tutor-profile.entity';
 import { TutorsService } from './tutors.service';
 import { TutorsController } from './tutors.controller';
 import { AdminModule } from '../admin/admin.module';
+import { Booking } from '../bookings/entities/booking.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TutorProfile]),
+    TypeOrmModule.forFeature([TutorProfile, Booking]),
     AdminModule,
   ],
   controllers: [TutorsController],
