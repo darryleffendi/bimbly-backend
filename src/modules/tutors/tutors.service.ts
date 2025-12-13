@@ -101,9 +101,9 @@ export class TutorsService {
 
   async setAvailability(
     userId: string,
-    schedule: Record<string, { start: string; end: string }[]>,
+    schedule: { start: string; end: string; dayOfWeek: number }[],
   ): Promise<TutorProfile> {
-    let profile = await this.tutorProfileRepository.findOne({
+    const profile = await this.tutorProfileRepository.findOne({
       where: { userId },
     });
 
@@ -121,7 +121,7 @@ export class TutorsService {
     certificationName: string,
     fileUrl: string,
   ): Promise<TutorProfile> {
-    let profile = await this.tutorProfileRepository.findOne({
+    const profile = await this.tutorProfileRepository.findOne({
       where: { userId },
     });
 
@@ -258,10 +258,13 @@ export class TutorsService {
 
     const targetDate = date ? new Date(date) : new Date();
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayOfWeek = dayNames[targetDate.getDay()];
+    const dayOfWeekIndex = targetDate.getDay();
+    const dayOfWeek = dayNames[dayOfWeekIndex];
 
-    const schedule = profile.availabilitySchedule || {};
-    const daySlots = schedule[dayOfWeek] || [];
+    const schedule = profile.availabilitySchedule || [];
+    const daySlots = schedule
+      .filter(slot => slot.dayOfWeek === dayOfWeekIndex)
+      .map(slot => ({ start: slot.start, end: slot.end }));
 
     return {
       date: targetDate.toISOString().split('T')[0],
@@ -294,10 +297,11 @@ export class TutorsService {
 
     const targetDate = new Date(date);
     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayOfWeek = dayNames[targetDate.getDay()];
+    const dayOfWeekIndex = targetDate.getDay();
+    const dayOfWeek = dayNames[dayOfWeekIndex];
 
-    const schedule = profile.availabilitySchedule || {};
-    const dayRanges = schedule[dayOfWeek] || [];
+    const schedule = profile.availabilitySchedule || [];
+    const dayRanges = schedule.filter(slot => slot.dayOfWeek === dayOfWeekIndex);
 
     const allSlots: { start: string; end: string }[] = [];
     for (const range of dayRanges) {

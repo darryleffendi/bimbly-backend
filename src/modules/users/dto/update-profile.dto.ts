@@ -1,4 +1,6 @@
-import { IsString, IsOptional, MinLength, MaxLength, Matches, IsInt, Min, Max, IsArray, ArrayMinSize, ArrayMaxSize, IsNumber, IsObject } from 'class-validator';
+import { IsString, IsOptional, MinLength, MaxLength, Matches, IsInt, Min, Max, IsArray, ArrayMinSize, ArrayMaxSize, IsNumber, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { AvailabilitySlotDto, ValidateAvailabilitySlots } from '../../tutors/dto/availability-schedule.dto';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -94,6 +96,11 @@ export class UpdateProfileDto {
   hourlyRate?: number;
 
   @IsOptional()
-  @IsObject()
-  availabilitySchedule?: Record<string, { start: string; end: string }[]>;
+  @IsArray({ message: 'Availability schedule must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => AvailabilitySlotDto)
+  @ValidateAvailabilitySlots({
+    message: 'Time slots must not overlap within the same day and start time must be before end time',
+  })
+  availabilitySchedule?: AvailabilitySlotDto[];
 }

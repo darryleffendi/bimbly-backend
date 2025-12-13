@@ -47,7 +47,7 @@ export class TutorProfile {
   certifications?: { name: string; fileUrl: string }[];
 
   @Column({ name: 'availability_schedule', type: 'jsonb', nullable: true })
-  availabilitySchedule?: Record<string, { start: string; end: string }[]>;
+  availabilitySchedule?: { start: string; end: string; dayOfWeek: number }[];
 
   @Column({ name: 'average_rating', type: 'decimal', precision: 3, scale: 2, default: 0 })
   averageRating: number;

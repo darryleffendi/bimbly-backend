@@ -25,7 +25,7 @@ export class CombinedProfileResponseDto {
   teachingMethods?: ('online' | 'offline')[];
   hourlyRate?: number;
   certifications?: { name: string; fileUrl: string }[];
-  availabilitySchedule?: Record<string, { start: string; end: string }[]>;
+  availabilitySchedule?: { start: string; end: string; dayOfWeek: number }[];
   averageRating?: number;
   totalReviews?: number;
   isApproved?: boolean;
