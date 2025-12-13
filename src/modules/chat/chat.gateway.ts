@@ -20,6 +20,7 @@ interface AuthenticatedSocket extends Socket {
       email: string;
       role: string;
     };
+    activeConversation?: string;
   };
 }
 
@@ -120,6 +121,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     client.join(conversationId);
+    client.data.activeConversation = conversationId;
+
+    await this.chatService.markAsRead(conversationId, userId);
+
     this.logger.log(
       `User ${client.data.user.email} joined conversation ${conversationId}`,
     );
@@ -134,6 +139,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const { conversationId } = data;
     client.leave(conversationId);
+    client.data.activeConversation = undefined;
 
     this.logger.log(
       `User ${client.data.user.email} left conversation ${conversationId}`,
@@ -169,6 +175,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server.to(conversationId).emit('message_received', message);
 
+      const conversation =
+        await this.chatService.getConversationById(conversationId, userId);
+      const recipientId =
+        conversation.studentId === userId
+          ? conversation.tutorId
+          : conversation.studentId;
+
+      const recipientSocket = this.findSocketByUserId(recipientId);
+      const isRecipientViewing =
+        recipientSocket?.data.activeConversation === conversationId;
+
+      if (!isRecipientViewing && recipientSocket) {
+        const lastReadAt =
+          conversation.studentId === recipientId
+            ? conversation.studentLastReadAt
+            : conversation.tutorLastReadAt;
+        const unreadCount = await this.chatService.getUnreadCount(
+          conversationId,
+          recipientId,
+          lastReadAt,
+        );
+        recipientSocket.emit('unread_update', { conversationId, unreadCount });
+        recipientSocket.emit('conversation_update', {
+          conversationId,
+          lastMessage: {
+            text: message.messageText,
+            senderId: message.senderId,
+            createdAt: message.createdAt,
+          },
+          lastMessageAt: message.createdAt,
+        });
+      }
+
       this.logger.log(
         `Message sent in conversation ${conversationId} by ${client.data.user.email}`,
       );
@@ -179,5 +218,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('error', { message: 'Failed to send message' });
       return { status: 'error', message: 'Failed to send message' };
     }
+  }
+
+  private findSocketByUserId(userId: string): AuthenticatedSocket | undefined {
+    const sockets = this.server.sockets.sockets;
+    for (const [, socket] of sockets) {
+      const authSocket = socket as AuthenticatedSocket;
+      if (authSocket.data?.user?.id === userId) {
+        return authSocket;
+      }
+    }
+    return undefined;
   }
 }

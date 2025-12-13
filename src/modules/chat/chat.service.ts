@@ -36,30 +36,34 @@ export class ChatService {
     }
 
     let conversations: Conversation[];
+    const isStudent = user.userType === 'student';
 
-    if (user.userType === 'student') {
+    if (isStudent) {
       conversations = await this.conversationRepository.find({
         where: { studentId: userId },
         relations: ['tutor'],
         order: { lastMessageAt: 'DESC' },
       });
-
-      return conversations.map(
-        (conv) => new ConversationResponseDto(conv, conv.tutor),
-      );
     } else if (user.userType === 'tutor') {
       conversations = await this.conversationRepository.find({
         where: { tutorId: userId },
         relations: ['student'],
         order: { lastMessageAt: 'DESC' },
       });
-
-      return conversations.map(
-        (conv) => new ConversationResponseDto(conv, conv.student),
-      );
+    } else {
+      return [];
     }
 
-    return [];
+    const results: ConversationResponseDto[] = [];
+
+    for (const conv of conversations) {
+      const lastReadAt = isStudent ? conv.studentLastReadAt : conv.tutorLastReadAt;
+      const unreadCount = await this.getUnreadCount(conv.id, userId, lastReadAt);
+      const participant = isStudent ? conv.tutor : conv.student;
+      results.push(new ConversationResponseDto(conv, participant, unreadCount));
+    }
+
+    return results;
   }
 
   async getOrCreateConversation(
@@ -218,5 +222,34 @@ export class ChatService {
 
   async getUserById(userId: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id: userId } });
+  }
+
+  async getUnreadCount(
+    conversationId: string,
+    recipientId: string,
+    lastReadAt: Date | null,
+  ): Promise<number> {
+    if (!lastReadAt) {
+      return 0;
+    }
+
+    return this.messageRepository
+      .createQueryBuilder('message')
+      .where('message.conversationId = :conversationId', { conversationId })
+      .andWhere('message.senderId != :recipientId', { recipientId })
+      .andWhere('message.createdAt > :lastReadAt', { lastReadAt })
+      .getCount();
+  }
+
+  async markAsRead(conversationId: string, userId: string): Promise<void> {
+    const conversation = await this.getConversationById(conversationId, userId);
+    const updateField =
+      conversation.studentId === userId
+        ? 'studentLastReadAt'
+        : 'tutorLastReadAt';
+
+    await this.conversationRepository.update(conversationId, {
+      [updateField]: new Date(),
+    });
   }
 }

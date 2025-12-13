@@ -34,6 +34,12 @@ export class Conversation {
   @Column({ name: 'last_message_preview', type: 'varchar', length: 200, nullable: true })
   lastMessagePreview: string | null;
 
+  @Column({ name: 'student_last_read_at', type: 'timestamp', nullable: true })
+  studentLastReadAt: Date | null;
+
+  @Column({ name: 'tutor_last_read_at', type: 'timestamp', nullable: true })
+  tutorLastReadAt: Date | null;
+
   @ManyToOne(() => User)
   @JoinColumn({ name: 'student_id' })
   student: User;

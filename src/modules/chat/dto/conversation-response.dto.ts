@@ -37,19 +37,19 @@ export class ConversationResponseDto {
   constructor(
     conversation: Conversation,
     participant: User,
-    lastMessageSenderId?: string,
+    unreadCount: number = 0,
   ) {
     this.id = conversation.id;
     this.participant = new ParticipantDto(participant);
     this.lastMessage = conversation.lastMessagePreview
       ? new LastMessageDto(
           conversation.lastMessagePreview,
-          lastMessageSenderId || '',
+          '',
           conversation.lastMessageAt || new Date(),
         )
       : null;
     this.lastMessageAt = conversation.lastMessageAt;
-    this.unreadCount = 0;
+    this.unreadCount = unreadCount;
   }
 }
 

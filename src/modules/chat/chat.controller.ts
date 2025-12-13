@@ -76,4 +76,13 @@ export class ChatController {
       sendMessageDto.text,
     );
   }
+
+  @Post(':id/read')
+  async markAsRead(
+    @CurrentUser() user: { id: string },
+    @Param('id', ParseUUIDPipe) conversationId: string,
+  ): Promise<{ success: boolean }> {
+    await this.chatService.markAsRead(conversationId, user.id);
+    return { success: true };
+  }
 }
