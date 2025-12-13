@@ -1,8 +1,16 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTutorProfileDto } from './create-tutor-profile.dto';
-import { IsObject } from 'class-validator';
+import { IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { Type } from 'class-transformer';
+import { AvailabilitySlotDto, ValidateAvailabilitySlots } from './availability-schedule.dto';
 
 export class UpdateTutorProfileDto extends PartialType(CreateTutorProfileDto) {
-  @IsObject({ message: 'Availability schedule must be an object' })
-  availabilitySchedule?: Record<string, { start: string; end: string }[]>;
+  @IsOptional()
+  @IsArray({ message: 'Availability schedule must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => AvailabilitySlotDto)
+  @ValidateAvailabilitySlots({
+    message: 'Time slots must not overlap within the same day and start time must be before end time',
+  })
+  availabilitySchedule?: AvailabilitySlotDto[];
 }
