@@ -11,7 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { UsersService } from '../users/users.service';
+import { StudentsService } from '../students/students.service';
+import { TutorsService } from '../tutors/tutors.service';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterStudentDto } from './dto/register-student.dto';
+import { RegisterTutorDto } from './dto/register-tutor.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -20,6 +24,8 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private studentsService: StudentsService,
+    private tutorsService: TutorsService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -184,5 +190,89 @@ export class AuthService {
 
   async getUserProfile(userId: string): Promise<UserResponseDto> {
     return this.usersService.getProfile(userId);
+  }
+
+  async registerStudent(registerDto: RegisterStudentDto): Promise<User> {
+    const existingUser = await this.usersService.findByEmail(registerDto.email);
+    if (existingUser) {
+      throw new ConflictException('This email is already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(registerDto.password, 10);
+    const verificationToken = randomUUID();
+
+    const user = await this.usersService.create({
+      email: registerDto.email,
+      passwordHash,
+      fullName: registerDto.fullName,
+      phoneNumber: registerDto.phoneNumber,
+      userType: 'student',
+      verificationToken,
+      isEmailVerified: false,
+    });
+
+    await this.studentsService.createProfile(user.id, {
+      currentGrade: registerDto.studentProfile.currentGrade,
+      schoolName: registerDto.studentProfile.schoolName,
+      city: registerDto.studentProfile.city,
+      province: registerDto.studentProfile.province,
+      address: registerDto.studentProfile.address,
+    });
+
+    console.log('\n==============================================');
+    console.log('📧 EMAIL VERIFICATION (MOCKED) - STUDENT');
+    console.log('==============================================');
+    console.log(`To: ${user.email}`);
+    console.log(`Subject: Verify your Bimbly account`);
+    console.log(`\nVerification Link:`);
+    console.log(`http://localhost:5173/verify-email?token=${verificationToken}`);
+    console.log('==============================================\n');
+
+    return user;
+  }
+
+  async registerTutor(registerDto: RegisterTutorDto): Promise<User> {
+    const existingUser = await this.usersService.findByEmail(registerDto.email);
+    if (existingUser) {
+      throw new ConflictException('This email is already registered');
+    }
+
+    const passwordHash = await bcrypt.hash(registerDto.password, 10);
+    const verificationToken = randomUUID();
+
+    const user = await this.usersService.create({
+      email: registerDto.email,
+      passwordHash,
+      fullName: registerDto.fullName,
+      phoneNumber: registerDto.phoneNumber,
+      userType: 'tutor',
+      verificationToken,
+      isEmailVerified: false,
+    });
+
+    await this.tutorsService.createProfile(user.id, {
+      bio: registerDto.tutorProfile.bio,
+      educationBackground: registerDto.tutorProfile.educationBackground,
+      teachingExperienceYears: registerDto.tutorProfile.teachingExperienceYears,
+      specializations: registerDto.tutorProfile.specializations,
+      subjects: registerDto.tutorProfile.subjects,
+      gradeLevels: registerDto.tutorProfile.gradeLevels,
+      teachingMethods: registerDto.tutorProfile.teachingMethods,
+      hourlyRate: registerDto.tutorProfile.hourlyRate,
+      city: registerDto.tutorProfile.city,
+      province: registerDto.tutorProfile.province,
+    });
+
+    console.log('\n==============================================');
+    console.log('📧 EMAIL VERIFICATION (MOCKED) - TUTOR');
+    console.log('==============================================');
+    console.log(`To: ${user.email}`);
+    console.log(`Subject: Verify your Bimbly account`);
+    console.log(`\nVerification Link:`);
+    console.log(`http://localhost:5173/verify-email?token=${verificationToken}`);
+    console.log(`Note: Tutor account requires admin approval after email verification.`);
+    console.log('==============================================\n');
+
+    return user;
   }
 }

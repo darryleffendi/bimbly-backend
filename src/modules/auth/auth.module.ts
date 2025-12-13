@@ -5,11 +5,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
+import { StudentsModule } from '../students/students.module';
+import { TutorsModule } from '../tutors/tutors.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     UsersModule,
+    StudentsModule,
+    TutorsModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
