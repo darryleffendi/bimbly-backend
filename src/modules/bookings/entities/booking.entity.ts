@@ -1,11 +1,24 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from 'src/modules/users/entities/user.entity';
 
 export enum BookingStatus {
-  PENDING = 'pending',
+  PENDING_PAYMENT = 'pending_payment',
   CONFIRMED = 'confirmed',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
+}
+
+export enum TeachingMethod {
+  ONLINE = 'online',
+  OFFLINE = 'offline',
 }
 
 @Entity('bookings')
@@ -16,28 +29,66 @@ export class Booking {
   @Column({ name: 'student_id', type: 'uuid' })
   studentId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'student_id' })
   student: User;
 
   @Column({ name: 'tutor_id', type: 'uuid' })
   tutorId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'tutor_id' })
   tutor: User;
 
   @Column()
   subject: string;
 
-  @Column({ name: 'session_date', type: 'timestamp' })
-  sessionDate: Date;
+  @Column({ nullable: true })
+  subtopic: string;
+
+  @Column({ name: 'grade_level', type: 'integer' })
+  gradeLevel: number;
+
+  @Column({
+    name: 'teaching_method',
+    type: 'enum',
+    enum: TeachingMethod,
+  })
+  teachingMethod: TeachingMethod;
+
+  @Column({ name: 'booking_date', type: 'date' })
+  bookingDate: Date;
+
+  @Column({ name: 'start_time', type: 'time' })
+  startTime: string;
 
   @Column({ name: 'duration_hours', type: 'decimal', precision: 3, scale: 1 })
   durationHours: number;
 
-  @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
+  @Column({ name: 'hourly_rate', type: 'decimal', precision: 10, scale: 2 })
+  hourlyRate: number;
+
+  @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2 })
+  totalPrice: number;
+
+  @Column({
+    type: 'enum',
+    enum: BookingStatus,
+    default: BookingStatus.PENDING_PAYMENT,
+  })
   status: BookingStatus;
+
+  @Column({ nullable: true })
+  location: string;
+
+  @Column({ name: 'meeting_url', nullable: true })
+  meetingUrl: string;
+
+  @Column({ name: 'cancellation_reason', nullable: true })
+  cancellationReason: string;
+
+  @Column({ name: 'cancelled_by', type: 'uuid', nullable: true })
+  cancelledBy: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
