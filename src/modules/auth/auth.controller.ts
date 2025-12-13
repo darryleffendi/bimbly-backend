@@ -12,6 +12,8 @@ import {
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterStudentDto } from './dto/register-student.dto';
+import { RegisterTutorDto } from './dto/register-tutor.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -33,6 +35,34 @@ export class AuthController {
 
     return {
       message: 'Registration successful. Please check your email to verify your account.',
+      user: userResponse,
+    };
+  }
+
+  @Post('register/student')
+  @HttpCode(HttpStatus.CREATED)
+  async registerStudent(@Body() registerDto: RegisterStudentDto) {
+    const user = await this.authService.registerStudent(registerDto);
+
+    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+      user;
+
+    return {
+      message: 'Registration successful. Please check your email to verify your account.',
+      user: userResponse,
+    };
+  }
+
+  @Post('register/tutor')
+  @HttpCode(HttpStatus.CREATED)
+  async registerTutor(@Body() registerDto: RegisterTutorDto) {
+    const user = await this.authService.registerTutor(registerDto);
+
+    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+      user;
+
+    return {
+      message: 'Registration successful. Please check your email to verify your account. Your tutor profile will be reviewed by our team.',
       user: userResponse,
     };
   }
