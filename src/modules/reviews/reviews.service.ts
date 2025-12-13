@@ -1,108 +1,141 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
-import { Booking } from '../bookings/entities/booking.entity';
 import { TutorProfile } from '../tutors/entities/tutor-profile.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { RespondReviewDto } from './dto/respond-review.dto';
+
+export interface RatingDistribution {
+  star: number;
+  count: number;
+}
+
+export interface ReviewResponse {
+  reviewTitle: string;
+  reviewText: string | null;
+  rating: number;
+  createdAt: Date;
+  student: {
+    fullName: string;
+    profileImageUrl: string | null;
+  };
+}
+
+export interface ReviewsWithMeta {
+  data: ReviewResponse[];
+  meta: {
+    averageRating: number;
+    totalReviews: number;
+    ratingDistribution: RatingDistribution[];
+    currentPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
 
 @Injectable()
 export class ReviewsService {
   constructor(
     @InjectRepository(Review)
     private reviewsRepository: Repository<Review>,
-    @InjectRepository(Booking)
-    private bookingsRepository: Repository<Booking>,
     @InjectRepository(TutorProfile)
     private tutorProfilesRepository: Repository<TutorProfile>,
   ) {}
 
-  async create(studentId: string, createDto: CreateReviewDto): Promise<Review> {
-    const booking = await this.bookingsRepository.findOne({
-      where: { id: createDto.bookingId },
+  async create(studentId: string, createDto: CreateReviewDto): Promise<ReviewResponse> {
+    const tutorProfile = await this.tutorProfilesRepository.findOne({
+      where: { id: createDto.tutorId },
     });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
-    }
-
-    if (booking.studentId !== studentId) {
-      throw new ForbiddenException('You can only review your own bookings');
-    }
-
-    const existing = await this.reviewsRepository.findOne({
-      where: { bookingId: createDto.bookingId },
-    });
-
-    if (existing) {
-      throw new ConflictException('Review already exists for this booking');
+    if (!tutorProfile) {
+      throw new NotFoundException('Tutor not found');
     }
 
     const review = this.reviewsRepository.create({
-      ...createDto,
-      tutorId: booking.tutorId,
+      tutorId: tutorProfile.userId,
       studentId,
+      rating: createDto.rating,
+      reviewTitle: createDto.reviewTitle,
+      reviewText: createDto.reviewText,
     });
 
     const savedReview = await this.reviewsRepository.save(review);
-    await this.updateTutorRating(booking.tutorId);
+    await this.updateTutorRating(createDto.tutorId);
 
-    return savedReview;
-  }
-
-  async findByTutor(tutorId: string, page = 1, limit = 10): Promise<{ data: Review[]; meta: any }> {
-    const [reviews, total] = await this.reviewsRepository.findAndCount({
-      where: { tutorId },
-      relations: ['student', 'student.user'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
+    const reviewWithStudent = await this.reviewsRepository.findOne({
+      where: { id: savedReview.id },
+      relations: ['student'],
     });
 
+    return this.mapToResponse(reviewWithStudent!);
+  }
+
+  async findByTutor(
+    tutorId: string,
+    page = 1,
+    limit = 10,
+    sortBy: 'newest' | 'oldest' | 'highest' | 'lowest' = 'newest',
+    rating?: number,
+  ): Promise<ReviewsWithMeta> {
     const tutor = await this.tutorProfilesRepository.findOne({
       where: { id: tutorId },
     });
 
+    if (!tutor) {
+      return {
+        data: [],
+        meta: {
+          averageRating: 0,
+          totalReviews: 0,
+          ratingDistribution: [5, 4, 3, 2, 1].map((star) => ({ star, count: 0 })),
+          currentPage: page,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      };
+    }
+
+    const orderMap: Record<string, { column: string; direction: 'ASC' | 'DESC' }> = {
+      newest: { column: 'review.createdAt', direction: 'DESC' },
+      oldest: { column: 'review.createdAt', direction: 'ASC' },
+      highest: { column: 'review.rating', direction: 'DESC' },
+      lowest: { column: 'review.rating', direction: 'ASC' },
+    };
+
+    const order = orderMap[sortBy] || orderMap.newest;
+
+    const queryBuilder = this.reviewsRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.student', 'student')
+      .where('review.tutorId = :tutorUserId', { tutorUserId: tutor.userId });
+
+    if (rating !== undefined) {
+      queryBuilder.andWhere('review.rating = :rating', { rating });
+    }
+
+    const [reviews, total] = await queryBuilder
+      .orderBy(order.column, order.direction)
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const ratingDistribution = await this.getRatingDistribution(tutor.userId);
+    const totalPages = Math.ceil(total / limit);
+
     return {
-      data: reviews,
+      data: reviews.map((review) => this.mapToResponse(review)),
       meta: {
-        averageRating: tutor?.averageRating || 0,
-        totalReviews: tutor?.totalReviews || 0,
+        averageRating: Number(tutor.averageRating) || 0,
+        totalReviews: Number(tutor.totalReviews) || 0,
+        ratingDistribution,
         currentPage: page,
-        totalPages: Math.ceil(total / limit),
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
       },
     };
-  }
-
-  async findByBooking(bookingId: string): Promise<Review | null> {
-    return this.reviewsRepository.findOne({
-      where: { bookingId },
-      relations: ['student', 'student.user'],
-    });
-  }
-
-  async respondToReview(reviewId: string, tutorId: string, respondDto: RespondReviewDto): Promise<Review> {
-    const review = await this.reviewsRepository.findOne({
-      where: { id: reviewId },
-    });
-
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    if (review.tutorId !== tutorId) {
-      throw new ForbiddenException('You can only respond to your own reviews');
-    }
-
-    if (review.tutorResponse) {
-      throw new ConflictException('You have already responded to this review');
-    }
-
-    review.tutorResponse = respondDto.response;
-    review.tutorRespondedAt = new Date();
-
-    return this.reviewsRepository.save(review);
   }
 
   async remove(id: string, studentId: string): Promise<void> {
@@ -114,14 +147,47 @@ export class ReviewsService {
       throw new NotFoundException('Review not found');
     }
 
-    const tutorId = review.tutorId;
+    const tutorUserId = review.tutorId;
     await this.reviewsRepository.remove(review);
-    await this.updateTutorRating(tutorId);
+
+    const tutor = await this.tutorProfilesRepository.findOne({
+      where: { userId: tutorUserId },
+    });
+
+    if (tutor) {
+      await this.updateTutorRating(tutor.id);
+    }
   }
 
-  private async updateTutorRating(tutorId: string): Promise<void> {
+  private async getRatingDistribution(tutorId: string): Promise<RatingDistribution[]> {
+    const result = await this.reviewsRepository
+      .createQueryBuilder('review')
+      .select('review.rating', 'star')
+      .addSelect('COUNT(*)', 'count')
+      .where('review.tutorId = :tutorId', { tutorId })
+      .groupBy('review.rating')
+      .getRawMany();
+
+    const distribution: RatingDistribution[] = [5, 4, 3, 2, 1].map((star) => {
+      const found = result.find((r) => parseInt(r.star) === star);
+      return {
+        star,
+        count: found ? parseInt(found.count) : 0,
+      };
+    });
+
+    return distribution;
+  }
+
+  private async updateTutorRating(tutorProfileId: string): Promise<void> {
+    const tutor = await this.tutorProfilesRepository.findOne({
+      where: { id: tutorProfileId },
+    });
+
+    if (!tutor) return;
+
     const reviews = await this.reviewsRepository.find({
-      where: { tutorId },
+      where: { tutorId: tutor.userId },
     });
 
     const totalReviews = reviews.length;
@@ -130,11 +196,24 @@ export class ReviewsService {
       : 0;
 
     await this.tutorProfilesRepository.update(
-      { id: tutorId },
+      { id: tutorProfileId },
       {
-        averageRating: Math.round(averageRating * 100) / 100,
+        averageRating: Math.round(averageRating * 10) / 10,
         totalReviews,
       },
     );
+  }
+
+  private mapToResponse(review: Review): ReviewResponse {
+    return {
+      reviewTitle: review.reviewTitle,
+      reviewText: review.reviewText || null,
+      rating: review.rating,
+      createdAt: review.createdAt,
+      student: {
+        fullName: review.student?.fullName || 'Anonymous',
+        profileImageUrl: review.student?.profileImageUrl || null,
+      },
+    };
   }
 }

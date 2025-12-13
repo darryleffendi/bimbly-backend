@@ -1,18 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { Booking } from '../../bookings/entities/booking.entity';
-import { User } from 'src/modules/users/entities/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('reviews')
 export class Review {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'booking_id', type: 'uuid', unique: true })
-  bookingId: string;
-
-  @OneToOne(() => Booking)
-  @JoinColumn({ name: 'booking_id' })
-  booking: Booking;
 
   @Column({ name: 'tutor_id', type: 'uuid' })
   tutorId: string;
@@ -31,14 +23,11 @@ export class Review {
   @Column({ type: 'integer' })
   rating: number;
 
+  @Column({ name: 'review_title', type: 'varchar', length: 100 })
+  reviewTitle: string;
+
   @Column({ name: 'review_text', type: 'text', nullable: true })
   reviewText?: string;
-
-  @Column({ name: 'tutor_response', type: 'text', nullable: true })
-  tutorResponse?: string;
-
-  @Column({ name: 'tutor_responded_at', type: 'timestamp', nullable: true })
-  tutorRespondedAt?: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
