@@ -4,11 +4,11 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('reviews')
-@UseGuards(JwtAuthGuard)
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Request() req, @Body() createDto: CreateReviewDto): Promise<ReviewResponse> {
     return this.reviewsService.create(req.user.id, createDto);
   }
@@ -31,6 +31,7 @@ export class ReviewsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string, @Request() req): Promise<void> {
     return this.reviewsService.remove(id, req.user.id);
   }
