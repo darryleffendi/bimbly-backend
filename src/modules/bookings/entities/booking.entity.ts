@@ -90,6 +90,18 @@ export class Booking {
   @Column({ name: 'cancelled_by', type: 'uuid', nullable: true })
   cancelledBy: string;
 
+  @Column({ name: 'tutor_completed', type: 'boolean', default: false })
+  tutorCompleted: boolean;
+
+  @Column({ name: 'student_completed', type: 'boolean', default: false })
+  studentCompleted: boolean;
+
+  @Column({ name: 'tutor_completed_at', type: 'timestamp', nullable: true })
+  tutorCompletedAt: Date;
+
+  @Column({ name: 'student_completed_at', type: 'timestamp', nullable: true })
+  studentCompletedAt: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

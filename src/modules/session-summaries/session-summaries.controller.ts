@@ -11,7 +11,7 @@ export class SessionSummariesController {
 
   @Post()
   create(@Request() req, @Body() createDto: CreateSessionSummaryDto) {
-    return this.sessionSummariesService.create(req.user.tutorProfileId, createDto);
+    return this.sessionSummariesService.create(req.user.id, createDto);
   }
 
   @Get('booking/:bookingId')
@@ -31,6 +31,6 @@ export class SessionSummariesController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Request() req, @Body() updateDto: UpdateSessionSummaryDto) {
-    return this.sessionSummariesService.update(id, req.user.tutorProfileId, updateDto);
+    return this.sessionSummariesService.update(id, req.user.id, updateDto);
   }
 }

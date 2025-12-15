@@ -224,6 +224,10 @@ export class BookingsService {
       );
     }
 
+    if (booking.tutorCompleted) {
+      throw new BadRequestException('You have already marked this session as completed');
+    }
+
     const bookingDateTime = new Date(
       `${booking.bookingDate}T${booking.startTime}`,
     );
@@ -238,11 +242,56 @@ export class BookingsService {
       );
     }
 
+    booking.tutorCompleted = true;
+    booking.tutorCompletedAt = new Date();
+
+    if (booking.studentCompleted) {
+      booking.status = BookingStatus.COMPLETED;
+      await this.tutorProfileRepository.increment(
+        { userId: tutorId },
+        'totalSessions',
+        1,
+      );
+    }
+
+    await this.bookingRepository.save(booking);
+    return new BookingResponseDto(booking);
+  }
+
+  async studentCompleteBooking(
+    bookingId: string,
+    studentId: string,
+  ): Promise<BookingResponseDto> {
+    const booking = await this.findBookingById(bookingId);
+
+    if (booking.studentId !== studentId) {
+      throw new ForbiddenException('You can only complete your own bookings');
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Cannot complete booking with status: ${booking.status}`,
+      );
+    }
+
+    if (!booking.tutorCompleted) {
+      throw new BadRequestException(
+        'The tutor must complete the session first before you can confirm',
+      );
+    }
+
+    if (booking.studentCompleted) {
+      throw new BadRequestException('You have already confirmed this session as completed');
+    }
+
+    booking.studentCompleted = true;
+    booking.studentCompletedAt = new Date();
     booking.status = BookingStatus.COMPLETED;
+
     await this.bookingRepository.save(booking);
 
     await this.tutorProfileRepository.increment(
-      { userId: tutorId },
+      { userId: booking.tutorId },
       'totalSessions',
       1,
     );

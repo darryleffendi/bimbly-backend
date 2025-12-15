@@ -29,6 +29,10 @@ export class BookingResponseDto {
   location: string | null;
   meetingUrl: string | null;
   cancellationReason: string | null;
+  tutorCompleted: boolean;
+  studentCompleted: boolean;
+  tutorCompletedAt: string | null;
+  studentCompletedAt: string | null;
 
   constructor(booking: Booking) {
     this.bookingId = booking.id;
@@ -50,6 +54,14 @@ export class BookingResponseDto {
     this.location = booking.location || null;
     this.meetingUrl = booking.meetingUrl || null;
     this.cancellationReason = booking.cancellationReason || null;
+    this.tutorCompleted = booking.tutorCompleted || false;
+    this.studentCompleted = booking.studentCompleted || false;
+    this.tutorCompletedAt = booking.tutorCompletedAt
+      ? booking.tutorCompletedAt.toISOString()
+      : null;
+    this.studentCompletedAt = booking.studentCompletedAt
+      ? booking.studentCompletedAt.toISOString()
+      : null;
   }
 }
 

@@ -1,4 +1,4 @@
-import { IsUUID, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsUUID, IsString, IsNotEmpty, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateSessionSummaryDto {
   @IsUUID()
@@ -16,9 +16,13 @@ export class CreateSessionSummaryDto {
   @IsOptional()
   notes?: string;
 
-  @IsString()
+  @IsUUID()
   @IsOptional()
-  homeworkAssigned?: string;
+  quizTemplateId?: string;
+
+  @IsDateString()
+  @IsOptional()
+  quizDeadline?: string;
 
   @IsString()
   @IsOptional()
