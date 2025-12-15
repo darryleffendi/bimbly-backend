@@ -198,7 +198,6 @@ async function seed() {
       user.userType = 'student';
       user.fullName = student.fullName;
       user.phoneNumber = student.phoneNumber;
-      user.isEmailVerified = true;
       user = await userRepository.save(user);
       console.log(`Created student: ${student.fullName}`);
     } else {
