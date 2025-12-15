@@ -7,7 +7,6 @@ export class UserResponseDto {
   fullName: string;
   phoneNumber: string;
   profileImageUrl?: string;
-  isEmailVerified: boolean;
 
   constructor(user: User) {
     this.id = user.id;
