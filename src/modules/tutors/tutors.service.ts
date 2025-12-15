@@ -16,6 +16,9 @@ import {
 import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
 import { AvailableSlotsResponseDto } from './dto/available-slots.dto';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import * as fs from 'fs';
+import * as path from 'path';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class TutorsService {
@@ -35,12 +38,73 @@ export class TutorsService {
       return existingProfile;
     }
 
+    console.log('=== Creating Tutor Profile ===');
+    console.log('Certifications received:', createDto.certifications?.length ?? 0);
+    console.log('Availability schedule received:', createDto.availabilitySchedule?.length ?? 0);
+
+    let processedCertifications: { name: string; fileUrl: string }[] | undefined;
+    if (createDto.certifications && createDto.certifications.length > 0) {
+      processedCertifications = await this.processCertifications(createDto.certifications, userId);
+      console.log('Processed certifications:', processedCertifications);
+    }
+
+    const { certifications, ...restDto } = createDto;
+
     const profile = this.tutorProfileRepository.create({
       userId,
-      ...createDto,
+      ...restDto,
+      certifications: processedCertifications,
     });
 
-    return this.tutorProfileRepository.save(profile);
+    const savedProfile = await this.tutorProfileRepository.save(profile);
+    console.log('Saved profile certifications:', savedProfile.certifications);
+    console.log('Saved profile availability:', savedProfile.availabilitySchedule);
+    console.log('==============================');
+
+    return savedProfile;
+  }
+
+  private async processCertifications(
+    certifications: { name: string; fileData: string }[],
+    userId: string,
+  ): Promise<{ name: string; fileUrl: string }[]> {
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'certifications', userId);
+
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const processedCerts: { name: string; fileUrl: string }[] = [];
+
+    for (const cert of certifications) {
+      const matches = cert.fileData.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) {
+        continue;
+      }
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      let extension = '.bin';
+      if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+        extension = '.jpg';
+      } else if (mimeType === 'image/png') {
+        extension = '.png';
+      } else if (mimeType === 'application/pdf') {
+        extension = '.pdf';
+      }
+
+      const fileName = `${randomUUID()}${extension}`;
+      const filePath = path.join(uploadsDir, fileName);
+
+      fs.writeFileSync(filePath, buffer);
+
+      const fileUrl = `/uploads/certifications/${userId}/${fileName}`;
+      processedCerts.push({ name: cert.name, fileUrl });
+    }
+
+    return processedCerts;
   }
 
   async getProfileDto(userId: string): Promise<TutorProfileResponseDto> {

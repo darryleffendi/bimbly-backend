@@ -1,4 +1,15 @@
-import { IsInt, IsString, IsArray, IsEnum, IsNumber, Min, Max, MinLength, MaxLength, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsInt, IsString, IsArray, IsEnum, IsNumber, Min, Max, MinLength, MaxLength, ArrayMinSize, ArrayMaxSize, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { AvailabilitySlotDto, ValidateAvailabilitySlots } from './availability-schedule.dto';
+
+class CertificationData {
+  @IsString({ message: 'Certification name must be a string' })
+  @MinLength(2, { message: 'Certification name must be at least 2 characters' })
+  name: string;
+
+  @IsString({ message: 'File data must be a string' })
+  fileData: string;
+}
 
 export class CreateTutorProfileDto {
   @IsString({ message: 'Bio must be a string' })
@@ -49,4 +60,19 @@ export class CreateTutorProfileDto {
   @MinLength(2, { message: 'Province must be at least 2 characters' })
   @MaxLength(50, { message: 'Province must be at most 50 characters' })
   province: string;
+
+  @IsOptional()
+  @IsArray({ message: 'Certifications must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => CertificationData)
+  certifications?: CertificationData[];
+
+  @IsOptional()
+  @IsArray({ message: 'Availability schedule must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => AvailabilitySlotDto)
+  @ValidateAvailabilitySlots({
+    message: 'Time slots must not overlap within the same day and start time must be before end time',
+  })
+  availabilitySchedule?: AvailabilitySlotDto[];
 }

@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { StudentsModule } from '../students/students.module';
 import { TutorsModule } from '../tutors/tutors.module';
+import { AdminModule } from '../admin/admin.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -14,6 +15,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     UsersModule,
     StudentsModule,
     TutorsModule,
+    AdminModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -529,7 +529,6 @@ async function seed() {
     user.fullName = tutor.user.fullName;
     user.phoneNumber = tutor.user.phoneNumber;
     user.profileImageUrl = tutor.user.profileImageUrl || undefined;
-    user.isEmailVerified = true;
 
     const savedUser = await userRepository.save(user);
 

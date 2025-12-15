@@ -2,17 +2,16 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
-  NotFoundException,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { StudentsService } from '../students/students.service';
 import { TutorsService } from '../tutors/tutors.service';
+import { TutorApplicationsService } from '../admin/tutor-applications.service';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { RegisterTutorDto } from './dto/register-tutor.dto';
@@ -26,6 +25,7 @@ export class AuthService {
     private usersService: UsersService,
     private studentsService: StudentsService,
     private tutorsService: TutorsService,
+    private tutorApplicationsService: TutorApplicationsService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -38,26 +38,13 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(registerDto.password, 10);
 
-    const verificationToken = randomUUID();
-
     const user = await this.usersService.create({
       email: registerDto.email,
       passwordHash,
       fullName: registerDto.fullName,
       phoneNumber: registerDto.phoneNumber,
       userType: registerDto.userType,
-      verificationToken,
-      isEmailVerified: false,
     });
-
-    console.log('\n==============================================');
-    console.log('📧 EMAIL VERIFICATION (MOCKED)');
-    console.log('==============================================');
-    console.log(`To: ${user.email}`);
-    console.log(`Subject: Verify your Bimbly account`);
-    console.log(`\nVerification Link:`);
-    console.log(`http://localhost:5173/verify-email?token=${verificationToken}`);
-    console.log('==============================================\n');
 
     return user;
   }
@@ -81,46 +68,6 @@ export class AuthService {
       ...tokens,
       user,
     };
-  }
-
-  async verifyEmail(token: string): Promise<void> {
-    const user = await this.usersService.findByVerificationToken(token);
-
-    if (!user) {
-      throw new BadRequestException('Verification link is invalid or expired');
-    }
-
-    await this.usersService.update(user.id, {
-      isEmailVerified: true,
-      verificationToken: undefined,
-    });
-  }
-
-  async forgotPassword(email: string): Promise<void> {
-    const user = await this.usersService.findByEmail(email);
-
-    if (!user) {
-      return;
-    }
-
-    const resetToken = randomUUID();
-    const resetTokenExpires = new Date();
-    resetTokenExpires.setHours(resetTokenExpires.getHours() + 1); // 1 jam expiry
-
-    await this.usersService.update(user.id, {
-      resetToken,
-      resetTokenExpires,
-    });
-
-    console.log('\n==============================================');
-    console.log('🔐 PASSWORD RESET (MOCKED)');
-    console.log('==============================================');
-    console.log(`To: ${user.email}`);
-    console.log(`Subject: Reset your Bimbly password`);
-    console.log(`\nReset Link:`);
-    console.log(`http://localhost:5173/reset-password?token=${resetToken}`);
-    console.log(`Expires: ${resetTokenExpires.toISOString()}`);
-    console.log('==============================================\n');
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -199,16 +146,13 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(registerDto.password, 10);
-    const verificationToken = randomUUID();
 
     const user = await this.usersService.create({
       email: registerDto.email,
       passwordHash,
       fullName: registerDto.fullName,
       phoneNumber: registerDto.phoneNumber,
-      userType: 'student',
-      verificationToken,
-      isEmailVerified: false,
+      userType: 'student'
     });
 
     await this.studentsService.createProfile(user.id, {
@@ -218,15 +162,6 @@ export class AuthService {
       province: registerDto.studentProfile.province,
       address: registerDto.studentProfile.address,
     });
-
-    console.log('\n==============================================');
-    console.log('📧 EMAIL VERIFICATION (MOCKED) - STUDENT');
-    console.log('==============================================');
-    console.log(`To: ${user.email}`);
-    console.log(`Subject: Verify your Bimbly account`);
-    console.log(`\nVerification Link:`);
-    console.log(`http://localhost:5173/verify-email?token=${verificationToken}`);
-    console.log('==============================================\n');
 
     return user;
   }
@@ -238,19 +173,16 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(registerDto.password, 10);
-    const verificationToken = randomUUID();
 
     const user = await this.usersService.create({
       email: registerDto.email,
       passwordHash,
       fullName: registerDto.fullName,
       phoneNumber: registerDto.phoneNumber,
-      userType: 'tutor',
-      verificationToken,
-      isEmailVerified: false,
+      userType: 'tutor'
     });
 
-    await this.tutorsService.createProfile(user.id, {
+    const tutorProfile = await this.tutorsService.createProfile(user.id, {
       bio: registerDto.tutorProfile.bio,
       educationBackground: registerDto.tutorProfile.educationBackground,
       teachingExperienceYears: registerDto.tutorProfile.teachingExperienceYears,
@@ -261,17 +193,11 @@ export class AuthService {
       hourlyRate: registerDto.tutorProfile.hourlyRate,
       city: registerDto.tutorProfile.city,
       province: registerDto.tutorProfile.province,
+      certifications: registerDto.tutorProfile.certifications,
+      availabilitySchedule: registerDto.tutorProfile.availabilitySchedule,
     });
 
-    console.log('\n==============================================');
-    console.log('📧 EMAIL VERIFICATION (MOCKED) - TUTOR');
-    console.log('==============================================');
-    console.log(`To: ${user.email}`);
-    console.log(`Subject: Verify your Bimbly account`);
-    console.log(`\nVerification Link:`);
-    console.log(`http://localhost:5173/verify-email?token=${verificationToken}`);
-    console.log(`Note: Tutor account requires admin approval after email verification.`);
-    console.log('==============================================\n');
+    await this.tutorApplicationsService.createApplication(tutorProfile.id);
 
     return user;
   }

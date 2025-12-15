@@ -46,10 +46,6 @@ export class UsersService {
     return this.findById(id);
   }
 
-  async findByVerificationToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { verificationToken: token } });
-  }
-
   async findByResetToken(token: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { resetToken: token } });
   }

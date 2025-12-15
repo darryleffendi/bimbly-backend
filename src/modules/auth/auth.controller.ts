@@ -30,7 +30,7 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.authService.register(registerDto);
 
-    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+    const { passwordHash, resetToken, ...userResponse } =
       user;
 
     return {
@@ -44,7 +44,7 @@ export class AuthController {
   async registerStudent(@Body() registerDto: RegisterStudentDto) {
     const user = await this.authService.registerStudent(registerDto);
 
-    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+    const { passwordHash, resetToken, ...userResponse } =
       user;
 
     return {
@@ -58,7 +58,7 @@ export class AuthController {
   async registerTutor(@Body() registerDto: RegisterTutorDto) {
     const user = await this.authService.registerTutor(registerDto);
 
-    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+    const { passwordHash, resetToken, ...userResponse } =
       user;
 
     return {
@@ -90,7 +90,7 @@ export class AuthController {
       maxAge: 90 * 24 * 60 * 60 * 1000,
     });
 
-    const { passwordHash, verificationToken, resetToken, ...userResponse } =
+    const { passwordHash, resetToken, ...userResponse } =
       user;
 
     return {
@@ -117,26 +117,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getCurrentUser(@Request() req): Promise<UserResponseDto> {
     return this.authService.getUserProfile(req.user.id);
-  }
-
-  @Post('verify-email')
-  @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
-    await this.authService.verifyEmail(verifyEmailDto.token);
-
-    return {
-      message: 'Email verified successfully',
-    };
-  }
-
-  @Post('forgot-password')
-  @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(forgotPasswordDto.email);
-
-    return {
-      message: 'Password reset email sent',
-    };
   }
 
   @Post('reset-password')

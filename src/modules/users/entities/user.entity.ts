@@ -33,12 +33,6 @@ export class User {
   @Column({ name: 'profile_image_url', type: 'text', nullable: true })
   profileImageUrl?: string;
 
-  @Column({ name: 'is_email_verified', default: false })
-  isEmailVerified: boolean;
-
-  @Column({ name: 'verification_token', nullable: true })
-  verificationToken?: string;
-
   @Column({ name: 'reset_token', nullable: true })
   resetToken?: string;
 
