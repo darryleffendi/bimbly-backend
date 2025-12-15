@@ -13,7 +13,7 @@ class CertificationData {
 
 export class CreateTutorProfileDto {
   @IsString({ message: 'Bio must be a string' })
-  @MinLength(200, { message: 'Bio must be at least 200 characters' })
+  @MinLength(50, { message: 'Bio must be at least 50 characters' })
   @MaxLength(1000, { message: 'Bio must be at most 1000 characters' })
   bio: string;
 
