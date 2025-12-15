@@ -45,7 +45,7 @@ export class AdminService {
         { userType: 'student' },
         { userType: 'tutor' }
       ],
-      select: ['id', 'email', 'fullName', 'userType', 'phoneNumber', 'isEmailVerified', 'isBlocked', 'blockedAt', 'blockReason', 'createdAt'],
+      select: ['id', 'email', 'fullName', 'userType', 'phoneNumber', 'isBlocked', 'blockedAt', 'blockReason', 'createdAt'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -53,7 +53,7 @@ export class AdminService {
   async getUserById(id: string) {
     return this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'email', 'fullName', 'userType', 'phoneNumber', 'isEmailVerified', 'profileImageUrl', 'isBlocked', 'blockedAt', 'blockReason', 'createdAt'],
+      select: ['id', 'email', 'fullName', 'userType', 'phoneNumber', 'profileImageUrl', 'isBlocked', 'blockedAt', 'blockReason', 'createdAt'],
     });
   }
 

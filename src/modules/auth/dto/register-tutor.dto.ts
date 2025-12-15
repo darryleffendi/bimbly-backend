@@ -16,14 +16,15 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { AvailabilitySlotDto, ValidateAvailabilitySlots } from '../../tutors/dto/availability-schedule.dto';
 
 class CertificationData {
   @IsString({ message: 'Certification name must be a string' })
   @MinLength(2, { message: 'Certification name must be at least 2 characters' })
   name: string;
 
-  @IsString({ message: 'File URL must be a string' })
-  fileUrl: string;
+  @IsString({ message: 'File data must be a string' })
+  fileData: string;
 }
 
 class TutorProfileData {
@@ -83,6 +84,15 @@ class TutorProfileData {
   @ValidateNested({ each: true })
   @Type(() => CertificationData)
   certifications?: CertificationData[];
+
+  @IsOptional()
+  @IsArray({ message: 'Availability schedule must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => AvailabilitySlotDto)
+  @ValidateAvailabilitySlots({
+    message: 'Time slots must not overlap within the same day and start time must be before end time',
+  })
+  availabilitySchedule?: AvailabilitySlotDto[];
 }
 
 export class RegisterTutorDto {

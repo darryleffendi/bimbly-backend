@@ -16,6 +16,5 @@ export class UserResponseDto {
     this.fullName = user.fullName;
     this.phoneNumber = user.phoneNumber;
     this.profileImageUrl = user.profileImageUrl;
-    this.isEmailVerified = user.isEmailVerified;
   }
 }

@@ -8,7 +8,6 @@ export class CombinedProfileResponseDto {
   fullName: string;
   phoneNumber: string;
   profileImageUrl?: string;
-  isEmailVerified: boolean;
 
   currentGrade?: number;
   schoolName?: string;
@@ -36,7 +35,6 @@ export class CombinedProfileResponseDto {
     this.fullName = user.fullName;
     this.phoneNumber = user.phoneNumber;
     this.profileImageUrl = user.profileImageUrl;
-    this.isEmailVerified = user.isEmailVerified;
 
     if (profile) {
       if (user.userType === 'student' && 'currentGrade' in profile) {
