@@ -35,21 +35,106 @@ const studentData = [
 ];
 
 const reviewTemplates = [
-  { rating: 5, title: 'Excellent Teaching!', text: 'The tutor explained everything clearly and made complex topics easy to understand. Highly recommended for anyone looking to improve their grades! What I particularly appreciated was how they broke down difficult concepts into smaller, manageable pieces. The patience shown when I struggled with certain topics was remarkable. I never felt rushed or judged, which made the learning environment very comfortable and conducive to asking questions.' },
-  { rating: 5, title: 'Best Tutor Ever', text: 'I went from struggling to getting top marks in my class. The teaching methods are very effective and engaging. Before these sessions, I was barely passing my exams and felt completely lost in class. Now, not only do I understand the material, but I actually look forward to learning more. The tutor has a unique ability to make even the most boring topics interesting and relevant to real life.' },
-  { rating: 5, title: 'Very Patient and Helpful', text: 'Even when I asked the same question multiple times, the tutor remained patient and found different ways to explain until I understood.' },
-  { rating: 5, title: 'Amazing Experience', text: 'The lessons are well-structured and the tutor always comes prepared. My confidence in this subject has grown tremendously. Every session feels like a productive use of time, with clear objectives and outcomes. The tutor also provides excellent follow-up materials and is always available to answer questions between sessions. This level of dedication is rare to find and has made a significant impact on my academic performance.' },
-  { rating: 4, title: 'Great Sessions', text: 'Very knowledgeable tutor who knows how to make learning fun. Sometimes sessions run a bit over time, but the quality is worth it.' },
-  { rating: 4, title: 'Highly Recommended', text: 'Good teaching style and flexible scheduling. Helped me prepare well for my exams. The tutor understood my specific needs and tailored the lessons accordingly. While there is always room for improvement, I am overall very satisfied with my experience and would definitely recommend this tutor to friends and family members who need academic support.' },
-  { rating: 4, title: 'Very Knowledgeable', text: 'The tutor has deep understanding of the subject matter. Could improve on providing more practice materials.' },
-  { rating: 4, title: 'Solid Teaching', text: 'Clear explanations and good examples. Would be great to have more interactive exercises during sessions.' },
-  { rating: 4, title: 'Good Value', text: 'The sessions are productive and I can see improvement in my understanding. Reasonable pricing for the quality provided.' },
-  { rating: 3, title: 'Decent Experience', text: 'The tutor knows the material well, but sometimes goes too fast. Had to ask for clarification several times. I think with some adjustments to pacing and more frequent check-ins to ensure understanding, the sessions could be even more effective. The content knowledge is definitely there, it is just about finding the right delivery method for different students learning styles.' },
-  { rating: 3, title: 'Average but Helpful', text: 'Sessions are okay. The explanations are clear but could use more real-world examples to make concepts stick.' },
-  { rating: 5, title: 'Life Changing!', text: 'I used to hate this subject, but now I actually enjoy it thanks to this amazing tutor. The passion for teaching really shows! My entire perspective on learning has changed. I now approach challenging topics with curiosity rather than dread. The tutor has not only helped me academically but has also taught me valuable study skills that I will use for the rest of my educational journey and beyond.' },
-  { rating: 5, title: 'Worth Every Penny', text: 'Professional, punctual, and incredibly effective. My test scores improved by 30% after just a few sessions. The investment in tutoring has paid off tremendously. What impressed me most was the structured approach to identifying my weak areas and systematically addressing them. The progress tracking was also very helpful in seeing how far I have come.' },
-  { rating: 4, title: 'Very Satisfied', text: 'The tutor adapts well to my learning pace. Good communication and always responds quickly to questions.' },
-  { rating: 5, title: 'Exceeded Expectations', text: 'I was skeptical at first, but the results speak for themselves. Went from a C student to getting As consistently. I initially doubted whether tutoring would make a difference, but I am so glad I gave it a chance. The personalized attention and customized learning plan made all the difference. The tutor genuinely cares about student success and it shows in every interaction.' },
+  {
+    rating: 5,
+    title: 'Transformed my understanding completely',
+    text: 'Bimbly has made it possible for me to stay on top of my studies and make real progress quickly and easily. The tutor explains concepts in a way that just clicks.',
+  },
+  {
+    rating: 5,
+    title: 'Exceeded all my expectations',
+    text: 'I was hesitant to try online tutoring at first, but I am so glad I did - it has exceeded all of my expectations. My grades improved significantly within weeks.',
+  },
+  {
+    rating: 5,
+    title: 'The most effective learning experience',
+    text: 'This tutor stands out as the most patient and effective teacher I have ever had. Complex topics become simple and easy to understand.',
+  },
+  {
+    rating: 5,
+    title: 'Finally understand math!',
+    text: 'After struggling for years, I finally understand the concepts. The tutor has a gift for breaking down difficult problems into manageable steps.',
+  },
+  {
+    rating: 5,
+    title: 'Best investment in my education',
+    text: 'Professional, punctual, and incredibly effective. My test scores improved dramatically after just a few sessions. Worth every penny!',
+  },
+  {
+    rating: 5,
+    title: 'Patient and understanding',
+    text: 'Even when I asked the same question multiple times, the tutor remained patient and found different ways to explain until I understood. No judgment, just support.',
+  },
+  {
+    rating: 5,
+    title: 'From failing to top of my class',
+    text: 'I went from barely passing to getting top marks. The teaching methods are engaging and effective. I actually look forward to studying now!',
+  },
+  {
+    rating: 5,
+    title: 'Confidence boost I needed',
+    text: 'Not only did my grades improve, but my confidence in tackling difficult subjects has grown tremendously. I feel prepared for any exam now.',
+  },
+  {
+    rating: 4,
+    title: 'Great learning experience',
+    text: 'Very knowledgeable tutor who makes learning enjoyable. The sessions are well-structured and always productive.',
+  },
+  {
+    rating: 4,
+    title: 'Flexible and accommodating',
+    text: 'Good teaching style with flexible scheduling. The tutor understood my specific needs and tailored lessons accordingly. Highly recommended!',
+  },
+  {
+    rating: 4,
+    title: 'Clear explanations',
+    text: 'The tutor has deep understanding of the subject matter. Explanations are clear and easy to follow. Very satisfied with my progress.',
+  },
+  {
+    rating: 4,
+    title: 'Solid improvement in grades',
+    text: 'Sessions are productive and I can see real improvement in my understanding. Good value for quality education provided.',
+  },
+  {
+    rating: 4,
+    title: 'Responsive and helpful',
+    text: 'The tutor adapts well to my learning pace and always responds quickly to questions. Communication has been excellent throughout.',
+  },
+  {
+    rating: 5,
+    title: 'Changed my perspective on learning',
+    text: 'I used to dread this subject, but now I genuinely enjoy it. The passion for teaching really shows in every session. Life-changing experience!',
+  },
+  {
+    rating: 5,
+    title: 'Personalized attention makes the difference',
+    text: 'The personalized attention and customized learning plan made all the difference. The tutor genuinely cares about student success.',
+  },
+  {
+    rating: 4,
+    title: 'Well-prepared sessions',
+    text: 'Every session feels like a productive use of time, with clear objectives. The tutor always comes prepared with relevant materials.',
+  },
+  {
+    rating: 5,
+    title: 'Wish I found this sooner',
+    text: 'If only I had discovered this tutor earlier! My academic journey would have been so much smoother. Better late than never though!',
+  },
+  {
+    rating: 5,
+    title: 'Makes difficult topics simple',
+    text: 'The ability to simplify complex concepts is remarkable. What seemed impossible before now feels achievable and even enjoyable.',
+  },
+  {
+    rating: 4,
+    title: 'Consistent quality',
+    text: 'Every session maintains the same high quality. The tutor is reliable, knowledgeable, and truly dedicated to helping students succeed.',
+  },
+  {
+    rating: 5,
+    title: 'Beyond just academics',
+    text: 'Not only improved my grades but also taught me valuable study skills and time management. These lessons will stay with me forever.',
+  },
 ];
 
 function getRandomDateInPast(maxDaysAgo: number): Date {
@@ -124,7 +209,8 @@ async function seed() {
 
   console.log('\nCreating reviews for each tutor...');
 
-  for (const tutor of tutors) {
+  for (let tutorIndex = 0; tutorIndex < tutors.length; tutorIndex++) {
+    const tutor = tutors[tutorIndex];
     const existingReviews = await reviewRepository.find({ where: { tutorId: tutor.userId } });
 
     if (existingReviews.length > 0) {
@@ -133,7 +219,15 @@ async function seed() {
       console.log(`Deleted ${existingReviews.length} existing reviews for tutor: ${tutorUser?.fullName || tutor.userId}`);
     }
 
-    const reviewCount = Math.floor(Math.random() * 6) + 20;
+    let reviewCount: number;
+    if (tutorIndex === 0) {
+      reviewCount = 1;
+    } else if (tutorIndex === 1) {
+      reviewCount = 2;
+    } else {
+      reviewCount = Math.floor(Math.random() * 6) + 5;
+    }
+
     const shuffledStudents = shuffleArray(studentUsers);
     const shuffledTemplates = shuffleArray(reviewTemplates);
 
