@@ -37,12 +37,6 @@ export class TutorProfile {
   @Column({ name: 'hourly_rate', type: 'decimal', precision: 10, scale: 2 })
   hourlyRate: number;
 
-  @Column()
-  city: string;
-
-  @Column()
-  province: string;
-
   @Column({ type: 'jsonb', nullable: true })
   certifications?: { name: string; fileUrl: string }[];
 

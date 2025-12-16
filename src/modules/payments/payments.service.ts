@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { Payment, PaymentStatus, PaymentMethod, PaymentInstructions } from './entities/payment.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { User } from '../users/entities/user.entity';
+import { utcToWibDate, utcToWibTime } from '../../common/utils/timezone.util';
 import {
   PaymentMethodInfoDto,
   PaymentMethodsResponseDto,
@@ -250,8 +251,8 @@ export class PaymentsService {
       },
       booking: {
         subject: payment.booking.subject,
-        bookingDate: payment.booking.bookingDate.toISOString().split('T')[0],
-        startTime: payment.booking.startTime,
+        bookingDate: utcToWibDate(payment.booking.startDateTime),
+        startTime: utcToWibTime(payment.booking.startDateTime),
         durationHours: Number(payment.booking.durationHours),
       },
       createdAt: payment.createdAt,

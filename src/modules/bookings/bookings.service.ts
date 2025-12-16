@@ -15,6 +15,7 @@ import {
 } from './dto/booking-response.dto';
 import { ConfirmBookingDto, CancelBookingDto } from './dto/update-booking.dto';
 import { BookingFiltersDto } from './dto/booking-filters.dto';
+import { wibToUtc } from '../../common/utils/timezone.util';
 
 @Injectable()
 export class BookingsService {
@@ -42,11 +43,14 @@ export class BookingsService {
       throw new BadRequestException('Tutor is not approved for bookings');
     }
 
-    const bookingDateTime = new Date(`${dto.bookingDate}T${dto.startTime}`);
+    const startDateTime = wibToUtc(dto.bookingDate, dto.startTime);
+    const endDateTime = new Date(
+      startDateTime.getTime() + dto.durationHours * 60 * 60 * 1000,
+    );
     const now = new Date();
     const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
-    if (bookingDateTime < twoHoursFromNow) {
+    if (startDateTime < twoHoursFromNow) {
       throw new BadRequestException(
         'Booking must be at least 2 hours in advance',
       );
@@ -54,9 +58,8 @@ export class BookingsService {
 
     const hasConflict = await this.checkTimeSlotConflict(
       dto.tutorId,
-      dto.bookingDate,
-      dto.startTime,
-      dto.durationHours,
+      startDateTime,
+      endDateTime,
     );
 
     if (hasConflict) {
@@ -75,8 +78,8 @@ export class BookingsService {
       subtopic: dto.subtopic,
       gradeLevel: dto.gradeLevel,
       teachingMethod: dto.teachingMethod,
-      bookingDate: new Date(dto.bookingDate),
-      startTime: dto.startTime,
+      startDateTime,
+      endDateTime,
       durationHours: dto.durationHours,
       hourlyRate,
       totalPrice,
@@ -112,15 +115,16 @@ export class BookingsService {
     }
 
     if (fromDate) {
-      query.andWhere('booking.bookingDate >= :fromDate', { fromDate });
+      const fromDateUtc = new Date(`${fromDate}T00:00:00+07:00`);
+      query.andWhere('booking.startDateTime >= :fromDateUtc', { fromDateUtc });
     }
 
     if (toDate) {
-      query.andWhere('booking.bookingDate <= :toDate', { toDate });
+      const toDateUtc = new Date(`${toDate}T23:59:59+07:00`);
+      query.andWhere('booking.startDateTime <= :toDateUtc', { toDateUtc });
     }
 
-    query.orderBy('booking.bookingDate', 'DESC');
-    query.addOrderBy('booking.startTime', 'DESC');
+    query.orderBy('booking.startDateTime', 'DESC');
 
     const total = await query.getCount();
     const bookings = await query
@@ -228,15 +232,8 @@ export class BookingsService {
       throw new BadRequestException('You have already marked this session as completed');
     }
 
-    const bookingDateTime = new Date(
-      `${booking.bookingDate}T${booking.startTime}`,
-    );
-    const endTime = new Date(
-      bookingDateTime.getTime() +
-        Number(booking.durationHours) * 60 * 60 * 1000,
-    );
-
-    if (new Date() < endTime) {
+    const now = new Date();
+    if (now < booking.endDateTime) {
       throw new BadRequestException(
         'Cannot complete booking before the session ends',
       );
@@ -305,11 +302,15 @@ export class BookingsService {
     startTime: string,
     durationHours: number,
   ): Promise<{ available: boolean; message?: string }> {
+    const startDateTime = wibToUtc(date, startTime);
+    const endDateTime = new Date(
+      startDateTime.getTime() + durationHours * 60 * 60 * 1000,
+    );
+
     const hasConflict = await this.checkTimeSlotConflict(
       tutorId,
-      date,
-      startTime,
-      durationHours,
+      startDateTime,
+      endDateTime,
     );
 
     return {
@@ -335,42 +336,19 @@ export class BookingsService {
 
   private async checkTimeSlotConflict(
     tutorId: string,
-    date: string,
-    startTime: string,
-    durationHours: number,
+    startDateTime: Date,
+    endDateTime: Date,
   ): Promise<boolean> {
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const startMinutes = startHour * 60 + startMinute;
-    const endMinutes = startMinutes + durationHours * 60;
+    const existingBookings = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .where('booking.tutorId = :tutorId', { tutorId })
+      .andWhere('booking.status IN (:...statuses)', {
+        statuses: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT],
+      })
+      .andWhere('booking.startDateTime < :endDateTime', { endDateTime })
+      .andWhere('booking.endDateTime > :startDateTime', { startDateTime })
+      .getMany();
 
-    const existingBookings = await this.bookingRepository.find({
-      where: {
-        tutorId,
-        bookingDate: new Date(date),
-        status: BookingStatus.CONFIRMED,
-      },
-    });
-
-    const pendingBookings = await this.bookingRepository.find({
-      where: {
-        tutorId,
-        bookingDate: new Date(date),
-        status: BookingStatus.PENDING_PAYMENT,
-      },
-    });
-
-    const allBookings = [...existingBookings, ...pendingBookings];
-
-    for (const booking of allBookings) {
-      const [bStartHour, bStartMinute] = booking.startTime.split(':').map(Number);
-      const bStartMinutes = bStartHour * 60 + bStartMinute;
-      const bEndMinutes = bStartMinutes + Number(booking.durationHours) * 60;
-
-      if (startMinutes < bEndMinutes && endMinutes > bStartMinutes) {
-        return true;
-      }
-    }
-
-    return false;
+    return existingBookings.length > 0;
   }
 }

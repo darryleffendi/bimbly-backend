@@ -63,7 +63,9 @@ export class UsersService {
     const userFieldsUpdated =
       updateProfileDto.fullName !== undefined ||
       updateProfileDto.phoneNumber !== undefined ||
-      updateProfileDto.profileImageUrl !== undefined;
+      updateProfileDto.profileImageUrl !== undefined ||
+      updateProfileDto.city !== undefined ||
+      updateProfileDto.province !== undefined;
 
     if (userFieldsUpdated) {
       if (updateProfileDto.fullName !== undefined) {
@@ -76,6 +78,14 @@ export class UsersService {
 
       if (updateProfileDto.profileImageUrl !== undefined) {
         user.profileImageUrl = updateProfileDto.profileImageUrl;
+      }
+
+      if (updateProfileDto.city !== undefined) {
+        user.city = updateProfileDto.city;
+      }
+
+      if (updateProfileDto.province !== undefined) {
+        user.province = updateProfileDto.province;
       }
 
       await this.usersRepository.save(user);
@@ -95,14 +105,6 @@ export class UsersService {
       }
       if (updateProfileDto.schoolName !== undefined) {
         studentFields.schoolName = updateProfileDto.schoolName;
-        hasStudentFields = true;
-      }
-      if (updateProfileDto.city !== undefined) {
-        studentFields.city = updateProfileDto.city;
-        hasStudentFields = true;
-      }
-      if (updateProfileDto.province !== undefined) {
-        studentFields.province = updateProfileDto.province;
         hasStudentFields = true;
       }
       if (updateProfileDto.address !== undefined) {
@@ -149,14 +151,6 @@ export class UsersService {
       }
       if (updateProfileDto.hourlyRate !== undefined) {
         tutorFields.hourlyRate = updateProfileDto.hourlyRate;
-        hasTutorFields = true;
-      }
-      if (updateProfileDto.city !== undefined) {
-        tutorFields.city = updateProfileDto.city;
-        hasTutorFields = true;
-      }
-      if (updateProfileDto.province !== undefined) {
-        tutorFields.province = updateProfileDto.province;
         hasTutorFields = true;
       }
       if (updateProfileDto.availabilitySchedule !== undefined) {

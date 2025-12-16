@@ -19,12 +19,6 @@ export class StudentProfile {
   @Column({ name: 'school_name' })
   schoolName: string;
 
-  @Column()
-  city: string;
-
-  @Column()
-  province: string;
-
   @Column({ nullable: true })
   address?: string;
 

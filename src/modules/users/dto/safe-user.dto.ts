@@ -1,20 +1,16 @@
 import { User } from '../entities/user.entity';
 
-export class UserResponseDto {
-  id: string;
-  email: string;
-  userType: 'student' | 'tutor' | 'admin';
+export class SafeUserDto {
   fullName: string;
+  email: string;
   phoneNumber: string;
   city: string;
   province: string;
   profileImageUrl?: string;
 
   constructor(user: User) {
-    this.id = user.id;
-    this.email = user.email;
-    this.userType = user.userType;
     this.fullName = user.fullName;
+    this.email = user.email;
     this.phoneNumber = user.phoneNumber;
     this.city = user.city;
     this.province = user.province;

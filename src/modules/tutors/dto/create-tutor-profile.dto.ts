@@ -51,16 +51,6 @@ export class CreateTutorProfileDto {
   @Max(1000000, { message: 'Hourly rate must be at most Rp 1,000,000' })
   hourlyRate: number;
 
-  @IsString({ message: 'City must be a string' })
-  @MinLength(2, { message: 'City must be at least 2 characters' })
-  @MaxLength(50, { message: 'City must be at most 50 characters' })
-  city: string;
-
-  @IsString({ message: 'Province must be a string' })
-  @MinLength(2, { message: 'Province must be at least 2 characters' })
-  @MaxLength(50, { message: 'Province must be at most 50 characters' })
-  province: string;
-
   @IsOptional()
   @IsArray({ message: 'Certifications must be an array' })
   @ValidateNested({ each: true })

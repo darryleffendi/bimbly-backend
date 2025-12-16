@@ -69,16 +69,6 @@ class TutorProfileData {
   @Max(1000000, { message: 'Hourly rate must be at most Rp 1,000,000' })
   hourlyRate: number;
 
-  @IsString({ message: 'City must be a string' })
-  @MinLength(2, { message: 'City must be at least 2 characters' })
-  @MaxLength(50, { message: 'City must be at most 50 characters' })
-  city: string;
-
-  @IsString({ message: 'Province must be a string' })
-  @MinLength(2, { message: 'Province must be at least 2 characters' })
-  @MaxLength(50, { message: 'Province must be at most 50 characters' })
-  province: string;
-
   @IsOptional()
   @IsArray({ message: 'Certifications must be an array' })
   @ValidateNested({ each: true })
@@ -111,6 +101,16 @@ export class RegisterTutorDto {
     message: 'Phone number must be valid Indonesian format (e.g., 081234567890)',
   })
   phoneNumber: string;
+
+  @IsString({ message: 'City must be a string' })
+  @MinLength(2, { message: 'City must be at least 2 characters' })
+  @MaxLength(50, { message: 'City must be at most 50 characters' })
+  city: string;
+
+  @IsString({ message: 'Province must be a string' })
+  @MinLength(2, { message: 'Province must be at least 2 characters' })
+  @MaxLength(50, { message: 'Province must be at most 50 characters' })
+  province: string;
 
   @ValidateNested()
   @Type(() => TutorProfileData)

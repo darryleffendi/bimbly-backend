@@ -1,4 +1,5 @@
 import { Booking, BookingStatus, TeachingMethod } from '../entities/booking.entity';
+import { utcToWibDate, utcToWibTime } from '../../../common/utils/timezone.util';
 
 export class BookingUserDto {
   id: string;
@@ -42,11 +43,8 @@ export class BookingResponseDto {
     this.subtopic = booking.subtopic || null;
     this.gradeLevel = booking.gradeLevel;
     this.teachingMethod = booking.teachingMethod;
-    this.bookingDate =
-      booking.bookingDate instanceof Date
-        ? booking.bookingDate.toISOString().split('T')[0]
-        : String(booking.bookingDate);
-    this.startTime = booking.startTime;
+    this.bookingDate = utcToWibDate(booking.startDateTime);
+    this.startTime = utcToWibTime(booking.startDateTime);
     this.durationHours = Number(booking.durationHours);
     this.hourlyRate = Number(booking.hourlyRate);
     this.totalPrice = Number(booking.totalPrice);

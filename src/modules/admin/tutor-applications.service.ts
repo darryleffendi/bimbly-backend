@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TutorApplication } from './entities/tutor-application.entity';
 import { TutorProfile } from '../tutors/entities/tutor-profile.entity';
+import { TutorApplicationResponseDto } from './dto/tutor-application-response.dto';
 
 @Injectable()
 export class TutorApplicationsService {
@@ -30,19 +31,33 @@ export class TutorApplicationsService {
     return this.applicationsRepository.save(application);
   }
 
-  async getAllApplications(status?: string) {
+  async getAllApplications(status?: string): Promise<TutorApplicationResponseDto[]> {
     const where = status ? { status: status as 'pending' | 'approved' | 'rejected' } : {};
-    return this.applicationsRepository.find({
+    const applications = await this.applicationsRepository.find({
       where,
-      relations: ['tutorProfile', 'tutorProfile.user', 'reviewer'],
+      relations: ['tutorProfile', 'tutorProfile.user'],
       order: { submittedAt: 'DESC' },
     });
+    return applications.map(app => new TutorApplicationResponseDto(app));
   }
 
-  async getApplicationById(id: string) {
+  async getApplicationById(id: string): Promise<TutorApplicationResponseDto> {
     const application = await this.applicationsRepository.findOne({
       where: { id },
-      relations: ['tutorProfile', 'tutorProfile.user', 'reviewer'],
+      relations: ['tutorProfile', 'tutorProfile.user'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return new TutorApplicationResponseDto(application);
+  }
+
+  private async getApplicationEntityById(id: string): Promise<TutorApplication> {
+    const application = await this.applicationsRepository.findOne({
+      where: { id },
+      relations: ['tutorProfile', 'tutorProfile.user'],
     });
 
     if (!application) {
@@ -52,8 +67,8 @@ export class TutorApplicationsService {
     return application;
   }
 
-  async approveApplication(id: string, adminId: string): Promise<TutorApplication> {
-    const application = await this.getApplicationById(id);
+  async approveApplication(id: string, adminId: string): Promise<TutorApplicationResponseDto> {
+    const application = await this.getApplicationEntityById(id);
 
     if (application.status !== 'pending') {
       throw new BadRequestException('Application is not pending');
@@ -69,11 +84,12 @@ export class TutorApplicationsService {
 
     await this.tutorProfilesRepository.update(application.tutorProfileId, { isApproved: true });
 
-    return this.applicationsRepository.save(application);
+    const saved = await this.applicationsRepository.save(application);
+    return new TutorApplicationResponseDto(saved);
   }
 
-  async rejectApplication(id: string, adminId: string, rejectionReason: string): Promise<TutorApplication> {
-    const application = await this.getApplicationById(id);
+  async rejectApplication(id: string, adminId: string, rejectionReason: string): Promise<TutorApplicationResponseDto> {
+    const application = await this.getApplicationEntityById(id);
 
     if (application.status !== 'pending') {
       throw new BadRequestException('Application is not pending');
@@ -88,11 +104,12 @@ export class TutorApplicationsService {
     application.requestedAt = undefined;
     application.requestedBy = undefined;
 
-    return this.applicationsRepository.save(application);
+    const saved = await this.applicationsRepository.save(application);
+    return new TutorApplicationResponseDto(saved);
   }
 
-  async requestAdditionalInfo(id: string, adminId: string, requestMessage: string): Promise<TutorApplication> {
-    const application = await this.getApplicationById(id);
+  async requestAdditionalInfo(id: string, adminId: string, requestMessage: string): Promise<TutorApplicationResponseDto> {
+    const application = await this.getApplicationEntityById(id);
 
     if (application.status !== 'pending') {
       throw new BadRequestException('Can only request info for pending applications');
@@ -103,14 +120,21 @@ export class TutorApplicationsService {
     application.requestedAt = new Date();
     application.requestedBy = adminId;
 
-    return this.applicationsRepository.save(application);
+    const saved = await this.applicationsRepository.save(application);
+    return new TutorApplicationResponseDto(saved);
   }
 
-  async findByTutorProfileId(tutorProfileId: string): Promise<TutorApplication | null> {
-    return this.applicationsRepository.findOne({
+  async findByTutorProfileId(tutorProfileId: string): Promise<TutorApplicationResponseDto | null> {
+    const application = await this.applicationsRepository.findOne({
       where: { tutorProfileId },
-      relations: ['tutorProfile', 'tutorProfile.user', 'reviewer', 'requester'],
+      relations: ['tutorProfile', 'tutorProfile.user'],
       order: { submittedAt: 'DESC' },
     });
+
+    if (!application) {
+      return null;
+    }
+
+    return new TutorApplicationResponseDto(application);
   }
 }

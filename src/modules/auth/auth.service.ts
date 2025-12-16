@@ -152,14 +152,14 @@ export class AuthService {
       passwordHash,
       fullName: registerDto.fullName,
       phoneNumber: registerDto.phoneNumber,
+      city: registerDto.city,
+      province: registerDto.province,
       userType: 'student'
     });
 
     await this.studentsService.createProfile(user.id, {
       currentGrade: registerDto.studentProfile.currentGrade,
       schoolName: registerDto.studentProfile.schoolName,
-      city: registerDto.studentProfile.city,
-      province: registerDto.studentProfile.province,
       address: registerDto.studentProfile.address,
     });
 
@@ -179,6 +179,8 @@ export class AuthService {
       passwordHash,
       fullName: registerDto.fullName,
       phoneNumber: registerDto.phoneNumber,
+      city: registerDto.city,
+      province: registerDto.province,
       userType: 'tutor'
     });
 
@@ -191,8 +193,6 @@ export class AuthService {
       gradeLevels: registerDto.tutorProfile.gradeLevels,
       teachingMethods: registerDto.tutorProfile.teachingMethods,
       hourlyRate: registerDto.tutorProfile.hourlyRate,
-      city: registerDto.tutorProfile.city,
-      province: registerDto.tutorProfile.province,
       certifications: registerDto.tutorProfile.certifications,
       availabilitySchedule: registerDto.tutorProfile.availabilitySchedule,
     });
