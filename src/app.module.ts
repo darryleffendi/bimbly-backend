@@ -8,7 +8,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { StudentsModule } from './modules/students/students.module';
 import { TutorsModule } from './modules/tutors/tutors.module';
 import { AdminModule } from './modules/admin/admin.module';
-import { SubjectsModule } from './modules/subjects/subjects.module';
 import { AcademicReportsModule } from './modules/academic-reports/academic-reports.module';
 import { SessionSummariesModule } from './modules/session-summaries/session-summaries.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
@@ -56,7 +55,6 @@ if (!globalThis.crypto?.randomUUID) {
     TutorsModule,
     AdminModule,
     BookingsModule,
-    SubjectsModule,
     AcademicReportsModule,
     SessionSummariesModule,
     ReviewsModule,

@@ -1,5 +1,4 @@
-import { IsUUID, IsInt, Min, Max, IsObject, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsInt, Min, Max, IsObject, MinLength, MaxLength } from 'class-validator';
 
 export class CreateAcademicReportDto {
   @IsInt()
@@ -7,8 +6,10 @@ export class CreateAcademicReportDto {
   @Max(12)
   grade: number;
 
-  @IsUUID()
-  subjectId: string;
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  subject: string;
 
   @IsObject()
   subtopicScores: Record<string, number>;

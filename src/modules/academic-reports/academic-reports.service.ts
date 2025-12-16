@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AcademicReport } from './entities/academic-report.entity';
@@ -17,7 +17,7 @@ export class AcademicReportsService {
       where: {
         studentId,
         grade: createDto.grade,
-        subjectId: createDto.subjectId,
+        subject: createDto.subject,
       },
     });
 
@@ -37,7 +37,6 @@ export class AcademicReportsService {
   async findAllByStudent(studentId: string): Promise<AcademicReport[]> {
     return this.academicReportsRepository.find({
       where: { studentId },
-      relations: ['subject'],
       order: { grade: 'ASC', createdAt: 'DESC' },
     });
   }

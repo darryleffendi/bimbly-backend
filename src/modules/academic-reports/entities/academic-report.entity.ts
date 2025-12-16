@@ -1,9 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import { Subject } from '../../subjects/entities/subject.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('student_academic_reports')
-@Unique(['studentId', 'grade', 'subjectId'])
+@Unique(['studentId', 'grade', 'subject'])
 export class AcademicReport {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,12 +17,8 @@ export class AcademicReport {
   @Column({ type: 'integer' })
   grade: number;
 
-  @Column({ name: 'subject_id', type: 'uuid' })
-  subjectId: string;
-
-  @ManyToOne(() => Subject)
-  @JoinColumn({ name: 'subject_id' })
-  subject: Subject;
+  @Column({ type: 'varchar', length: 100 })
+  subject: string;
 
   @Column({ name: 'subtopic_scores', type: 'jsonb' })
   subtopicScores: Record<string, number>;
