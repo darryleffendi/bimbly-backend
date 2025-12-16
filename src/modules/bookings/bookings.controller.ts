@@ -88,6 +88,16 @@ export class BookingsController {
     return this.bookingsService.completeBooking(id, req.user.id);
   }
 
+  @Patch(':id/student-complete')
+  @UseGuards(RolesGuard)
+  @Roles('student')
+  async studentCompleteBooking(
+    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<BookingResponseDto> {
+    return this.bookingsService.studentCompleteBooking(id, req.user.id);
+  }
+
   @Get('check-availability/:tutorId')
   async checkAvailability(
     @Param('tutorId', ParseUUIDPipe) tutorId: string,

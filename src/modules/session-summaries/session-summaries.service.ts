@@ -5,6 +5,7 @@ import { SessionSummary } from './entities/session-summary.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { CreateSessionSummaryDto } from './dto/create-session-summary.dto';
 import { UpdateSessionSummaryDto } from './dto/update-session-summary.dto';
+import { QuizAssignmentsService } from '../quiz-assignments/quiz-assignments.service';
 
 @Injectable()
 export class SessionSummariesService {
@@ -13,6 +14,7 @@ export class SessionSummariesService {
     private sessionSummariesRepository: Repository<SessionSummary>,
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
+    private quizAssignmentsService: QuizAssignmentsService,
   ) {}
 
   async create(tutorId: string, createDto: CreateSessionSummaryDto): Promise<SessionSummary> {
@@ -36,14 +38,33 @@ export class SessionSummariesService {
       throw new ConflictException('Summary already exists for this booking');
     }
 
-    const summary = this.sessionSummariesRepository.create(createDto);
+    let quizAssignmentId: string | undefined;
+
+    if (createDto.quizTemplateId) {
+      const quizAssignment = await this.quizAssignmentsService.create(tutorId, {
+        quizTemplateId: createDto.quizTemplateId,
+        studentId: booking.studentId,
+        sessionId: booking.id,
+        deadline: createDto.quizDeadline,
+      });
+      quizAssignmentId = quizAssignment.id;
+    }
+
+    const summary = this.sessionSummariesRepository.create({
+      bookingId: createDto.bookingId,
+      strengths: createDto.strengths,
+      areasForImprovement: createDto.areasForImprovement,
+      notes: createDto.notes,
+      quizAssignmentId,
+      nextSessionPlan: createDto.nextSessionPlan,
+    });
     return this.sessionSummariesRepository.save(summary);
   }
 
   async findByBooking(bookingId: string): Promise<SessionSummary | null> {
     return this.sessionSummariesRepository.findOne({
       where: { bookingId },
-      relations: ['booking'],
+      relations: ['booking', 'quizAssignment', 'quizAssignment.quizTemplate'],
     });
   }
 
@@ -51,6 +72,8 @@ export class SessionSummariesService {
     return this.sessionSummariesRepository
       .createQueryBuilder('summary')
       .leftJoinAndSelect('summary.booking', 'booking')
+      .leftJoinAndSelect('summary.quizAssignment', 'quizAssignment')
+      .leftJoinAndSelect('quizAssignment.quizTemplate', 'quizTemplate')
       .where('booking.studentId = :studentId', { studentId })
       .orderBy('summary.createdAt', 'DESC')
       .getMany();
@@ -60,6 +83,8 @@ export class SessionSummariesService {
     return this.sessionSummariesRepository
       .createQueryBuilder('summary')
       .leftJoinAndSelect('summary.booking', 'booking')
+      .leftJoinAndSelect('summary.quizAssignment', 'quizAssignment')
+      .leftJoinAndSelect('quizAssignment.quizTemplate', 'quizTemplate')
       .where('booking.tutorId = :tutorId', { tutorId })
       .orderBy('summary.createdAt', 'DESC')
       .getMany();

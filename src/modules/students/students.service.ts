@@ -2,15 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudentProfile } from './entities/student-profile.entity';
+import { Booking } from '../bookings/entities/booking.entity';
 import { CreateStudentProfileDto } from './dto/create-student-profile.dto';
 import { UpdateStudentProfileDto } from './dto/update-student-profile.dto';
 import { StudentProfileResponseDto } from './dto/student-profile-response.dto';
+import { TutoredStudentResponseDto } from './dto/tutored-student-response.dto';
 
 @Injectable()
 export class StudentsService {
   constructor(
     @InjectRepository(StudentProfile)
     private studentProfileRepository: Repository<StudentProfile>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
   ) {}
 
   async createProfile(userId: string, createDto: CreateStudentProfileDto): Promise<StudentProfile> {
@@ -74,5 +78,28 @@ export class StudentsService {
     }
 
     return this.studentProfileRepository.save(profile);
+  }
+
+  async getTutoredStudents(tutorId: string): Promise<TutoredStudentResponseDto[]> {
+    const bookings = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.student', 'student')
+      .where('booking.tutorId = :tutorId', { tutorId })
+      .select(['booking.studentId', 'student.id', 'student.fullName'])
+      .distinctOn(['booking.studentId'])
+      .getRawMany();
+
+    const uniqueStudents = new Map<string, TutoredStudentResponseDto>();
+
+    for (const booking of bookings) {
+      if (!uniqueStudents.has(booking.student_id)) {
+        uniqueStudents.set(booking.student_id, {
+          id: booking.student_id,
+          fullName: booking.student_full_name,
+        });
+      }
+    }
+
+    return Array.from(uniqueStudents.values());
   }
 }

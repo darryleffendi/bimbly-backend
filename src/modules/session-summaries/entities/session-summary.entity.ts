@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
 import { Booking } from '../../bookings/entities/booking.entity';
+import { QuizAssignment } from '../../quiz-assignments/entities/quiz-assignment.entity';
 
 @Entity('session_summaries')
 export class SessionSummary {
@@ -22,8 +23,12 @@ export class SessionSummary {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
-  @Column({ name: 'homework_assigned', type: 'text', nullable: true })
-  homeworkAssigned?: string;
+  @Column({ name: 'quiz_assignment_id', type: 'uuid', nullable: true })
+  quizAssignmentId?: string;
+
+  @ManyToOne(() => QuizAssignment, { nullable: true })
+  @JoinColumn({ name: 'quiz_assignment_id' })
+  quizAssignment?: QuizAssignment;
 
   @Column({ name: 'next_session_plan', type: 'text', nullable: true })
   nextSessionPlan?: string;
