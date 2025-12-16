@@ -23,16 +23,6 @@ class StudentProfileData {
   @MaxLength(100, { message: 'School name must be at most 100 characters' })
   schoolName: string;
 
-  @IsString({ message: 'City must be a string' })
-  @MinLength(2, { message: 'City must be at least 2 characters' })
-  @MaxLength(50, { message: 'City must be at most 50 characters' })
-  city: string;
-
-  @IsString({ message: 'Province must be a string' })
-  @MinLength(2, { message: 'Province must be at least 2 characters' })
-  @MaxLength(50, { message: 'Province must be at most 50 characters' })
-  province: string;
-
   @IsOptional()
   @IsString({ message: 'Address must be a string' })
   @MaxLength(200, { message: 'Address must be at most 200 characters' })
@@ -55,6 +45,16 @@ export class RegisterStudentDto {
     message: 'Phone number must be valid Indonesian format (e.g., 081234567890)',
   })
   phoneNumber: string;
+
+  @IsString({ message: 'City must be a string' })
+  @MinLength(2, { message: 'City must be at least 2 characters' })
+  @MaxLength(50, { message: 'City must be at most 50 characters' })
+  city: string;
+
+  @IsString({ message: 'Province must be a string' })
+  @MinLength(2, { message: 'Province must be at least 2 characters' })
+  @MaxLength(50, { message: 'Province must be at most 50 characters' })
+  province: string;
 
   @ValidateNested()
   @Type(() => StudentProfileData)

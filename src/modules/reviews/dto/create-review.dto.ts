@@ -15,7 +15,7 @@ export class CreateReviewDto {
   reviewTitle: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(1000)
-  reviewText?: string;
+  reviewText: string;
 }

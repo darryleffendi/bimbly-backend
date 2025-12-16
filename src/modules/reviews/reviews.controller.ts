@@ -30,6 +30,15 @@ export class ReviewsController {
     );
   }
 
+  @Get('check/:tutorUserId')
+  @UseGuards(JwtAuthGuard)
+  checkReview(
+    @Param('tutorUserId') tutorUserId: string,
+    @Request() req,
+  ): Promise<{ hasReviewed: boolean }> {
+    return this.reviewsService.hasReviewedTutor(req.user.id, tutorUserId);
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string, @Request() req): Promise<void> {

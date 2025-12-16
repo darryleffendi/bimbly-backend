@@ -35,14 +35,14 @@ export class CombinedProfileResponseDto {
     this.fullName = user.fullName;
     this.phoneNumber = user.phoneNumber;
     this.profileImageUrl = user.profileImageUrl;
+    this.city = user.city;
+    this.province = user.province;
 
     if (profile) {
       if (user.userType === 'student' && 'currentGrade' in profile) {
         const studentProfile = profile as StudentProfile;
         this.currentGrade = studentProfile.currentGrade;
         this.schoolName = studentProfile.schoolName;
-        this.city = studentProfile.city;
-        this.province = studentProfile.province;
         this.address = studentProfile.address;
       } else if (user.userType === 'tutor' && 'bio' in profile) {
         const tutorProfile = profile as TutorProfile;
@@ -54,8 +54,6 @@ export class CombinedProfileResponseDto {
         this.gradeLevels = tutorProfile.gradeLevels;
         this.teachingMethods = tutorProfile.teachingMethods;
         this.hourlyRate = tutorProfile.hourlyRate;
-        this.city = tutorProfile.city;
-        this.province = tutorProfile.province;
         this.certifications = tutorProfile.certifications;
         this.availabilitySchedule = tutorProfile.availabilitySchedule;
         this.averageRating = tutorProfile.averageRating;

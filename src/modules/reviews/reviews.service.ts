@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
@@ -45,15 +45,23 @@ export class ReviewsService {
 
   async create(studentId: string, createDto: CreateReviewDto): Promise<ReviewResponse> {
     const tutorProfile = await this.tutorProfilesRepository.findOne({
-      where: { id: createDto.tutorId },
+      where: { userId: createDto.tutorId },
     });
 
     if (!tutorProfile) {
       throw new NotFoundException('Tutor not found');
     }
 
+    const existingReview = await this.reviewsRepository.findOne({
+      where: { studentId, tutorId: createDto.tutorId },
+    });
+
+    if (existingReview) {
+      throw new ConflictException('You have already reviewed this tutor');
+    }
+
     const review = this.reviewsRepository.create({
-      tutorId: tutorProfile.userId,
+      tutorId: createDto.tutorId,
       studentId,
       rating: createDto.rating,
       reviewTitle: createDto.reviewTitle,
@@ -138,6 +146,13 @@ export class ReviewsService {
     };
   }
 
+  async hasReviewedTutor(studentId: string, tutorUserId: string): Promise<{ hasReviewed: boolean }> {
+    const review = await this.reviewsRepository.findOne({
+      where: { studentId, tutorId: tutorUserId },
+    });
+    return { hasReviewed: !!review };
+  }
+
   async remove(id: string, studentId: string): Promise<void> {
     const review = await this.reviewsRepository.findOne({
       where: { id, studentId },
@@ -149,14 +164,7 @@ export class ReviewsService {
 
     const tutorUserId = review.tutorId;
     await this.reviewsRepository.remove(review);
-
-    const tutor = await this.tutorProfilesRepository.findOne({
-      where: { userId: tutorUserId },
-    });
-
-    if (tutor) {
-      await this.updateTutorRating(tutor.id);
-    }
+    await this.updateTutorRating(tutorUserId);
   }
 
   private async getRatingDistribution(tutorId: string): Promise<RatingDistribution[]> {
@@ -179,15 +187,15 @@ export class ReviewsService {
     return distribution;
   }
 
-  private async updateTutorRating(tutorProfileId: string): Promise<void> {
+  private async updateTutorRating(tutorUserId: string): Promise<void> {
     const tutor = await this.tutorProfilesRepository.findOne({
-      where: { id: tutorProfileId },
+      where: { userId: tutorUserId },
     });
 
     if (!tutor) return;
 
     const reviews = await this.reviewsRepository.find({
-      where: { tutorId: tutor.userId },
+      where: { tutorId: tutorUserId },
     });
 
     const totalReviews = reviews.length;
@@ -196,7 +204,7 @@ export class ReviewsService {
       : 0;
 
     await this.tutorProfilesRepository.update(
-      { id: tutorProfileId },
+      { userId: tutorUserId },
       {
         averageRating: Math.round(averageRating * 10) / 10,
         totalReviews,

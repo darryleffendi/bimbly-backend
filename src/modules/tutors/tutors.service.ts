@@ -14,8 +14,10 @@ import {
   ReviewsResponseDto,
 } from './dto/tutor-availability.dto';
 import { TutorProfileResponseDto } from './dto/tutor-profile-response.dto';
+import { TutorPublicProfileResponseDto } from './dto/tutor-public-profile-response.dto';
 import { AvailableSlotsResponseDto } from './dto/available-slots.dto';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import { getNowInWib } from '../../common/utils/timezone.util';
 import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
@@ -225,11 +227,11 @@ export class TutorsService {
     }
 
     if (filters.city) {
-      query.andWhere('LOWER(tutor.city) LIKE LOWER(:city)', { city: `%${filters.city}%` });
+      query.andWhere('LOWER(user.city) LIKE LOWER(:city)', { city: `%${filters.city}%` });
     }
 
     if (filters.province) {
-      query.andWhere('LOWER(tutor.province) LIKE LOWER(:province)', {
+      query.andWhere('LOWER(user.province) LIKE LOWER(:province)', {
         province: `%${filters.province}%`,
       });
     }
@@ -275,8 +277,8 @@ export class TutorsService {
       gradeLevels: tutor.gradeLevels,
       teachingMethods: tutor.teachingMethods,
       hourlyRate: Number(tutor.hourlyRate),
-      city: tutor.city,
-      province: tutor.province,
+      city: tutor.user?.city || '',
+      province: tutor.user?.province || '',
       averageRating: Number(tutor.averageRating),
       totalReviews: tutor.totalReviews,
       totalSessions: tutor.totalSessions,
@@ -304,7 +306,20 @@ export class TutorsService {
     return sortMap[sortBy] || { column: 'tutor.averageRating', nullsLast: false };
   }
 
-  async getPublicProfile(tutorId: string): Promise<TutorProfile> {
+  async getPublicProfile(tutorId: string): Promise<TutorPublicProfileResponseDto> {
+    const profile = await this.tutorProfileRepository.findOne({
+      where: { id: tutorId, isApproved: true },
+      relations: ['user'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Tutor not found');
+    }
+
+    return new TutorPublicProfileResponseDto(profile);
+  }
+
+  private async getPublicProfileEntity(tutorId: string): Promise<TutorProfile> {
     const profile = await this.tutorProfileRepository.findOne({
       where: { id: tutorId, isApproved: true },
       relations: ['user'],
@@ -380,20 +395,26 @@ export class TutorsService {
       }
     }
 
-    const bookings = await this.bookingRepository.find({
-      where: {
-        tutorId: profile.userId,
-        bookingDate: targetDate,
-        status: In([BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT]),
-      },
-    });
+    const dayStart = new Date(`${date}T00:00:00+07:00`);
+    const dayEnd = new Date(`${date}T23:59:59+07:00`);
+
+    const bookings = await this.bookingRepository
+      .createQueryBuilder('booking')
+      .where('booking.tutorId = :tutorId', { tutorId: profile.userId })
+      .andWhere('booking.status IN (:...statuses)', {
+        statuses: [BookingStatus.CONFIRMED, BookingStatus.PENDING_PAYMENT],
+      })
+      .andWhere('booking.startDateTime >= :dayStart', { dayStart })
+      .andWhere('booking.startDateTime <= :dayEnd', { dayEnd })
+      .getMany();
 
     const availableSlots = allSlots.filter(slot => {
       const slotStart = this.timeToMinutes(slot.start);
       const slotEnd = this.timeToMinutes(slot.end);
 
       for (const booking of bookings) {
-        const bookingStart = this.timeToMinutes(booking.startTime);
+        const bookingStartWib = new Date(booking.startDateTime.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+        const bookingStart = bookingStartWib.getHours() * 60 + bookingStartWib.getMinutes();
         const bookingEnd = bookingStart + Number(booking.durationHours) * 60;
 
         if (slotStart < bookingEnd && slotEnd > bookingStart) {
@@ -403,12 +424,13 @@ export class TutorsService {
       return true;
     });
 
-    const now = new Date();
-    const isToday = targetDate.toDateString() === now.toDateString();
+    const nowWIB = getNowInWib();
+    const targetDateWIB = new Date(targetDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const isToday = targetDateWIB.toDateString() === nowWIB.toDateString();
     const filteredSlots = isToday
       ? availableSlots.filter(slot => {
           const slotStartMinutes = this.timeToMinutes(slot.start);
-          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          const nowMinutes = nowWIB.getHours() * 60 + nowWIB.getMinutes();
           return slotStartMinutes > nowMinutes + 120;
         })
       : availableSlots;

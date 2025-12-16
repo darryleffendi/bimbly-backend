@@ -53,8 +53,7 @@ export class TutorsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('tutor')
   async getProfile(@Request() req) {
-    const profile = await this.tutorsService.getOrCreateProfile(req.user.id);
-    return profile;
+    return this.tutorsService.getProfileDto(req.user.id);
   }
 
   @Get(':id')
