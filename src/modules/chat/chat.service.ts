@@ -17,6 +17,7 @@ import {
   MessageResponseDto,
   MessageListResponseDto,
 } from './dto/message-response.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ChatService {
@@ -27,6 +28,7 @@ export class ChatService {
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private notificationService: NotificationsService
   ) {}
 
   async getConversations(userId: string): Promise<ConversationResponseDto[]> {
@@ -174,6 +176,7 @@ export class ChatService {
     const sender = await this.userRepository.findOne({
       where: { id: senderId },
     });
+    const receiverId = conversation.studentId === senderId ? conversation.tutorId : conversation.studentId
 
     const message = this.messageRepository.create({
       conversationId,
@@ -188,6 +191,12 @@ export class ChatService {
       text,
       savedMessage.createdAt,
     );
+
+    this.notificationService
+        .sendNotification(receiverId, "New message from " + sender?.fullName, text, "message")
+        .catch((error) => {
+          console.error('Failed to send message notification:', error);
+        });
 
     return new MessageResponseDto(savedMessage, sender!.fullName);
   }

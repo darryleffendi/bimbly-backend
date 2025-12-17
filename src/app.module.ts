@@ -17,6 +17,7 @@ import { StudentAnswersModule } from './modules/student-answers/student-answers.
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 // Polyfill for crypto.randomUUID in Node.js 18
 if (!globalThis.crypto?.randomUUID) {
@@ -63,6 +64,7 @@ if (!globalThis.crypto?.randomUUID) {
     StudentAnswersModule,
     PaymentsModule,
     ChatModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

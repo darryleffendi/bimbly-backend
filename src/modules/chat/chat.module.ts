@@ -8,10 +8,12 @@ import { User } from '../users/entities/user.entity';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Conversation, Message, User]),
+    NotificationsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
