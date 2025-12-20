@@ -37,4 +37,9 @@ export class QuizAssignmentsController {
   submitQuiz(@Param('id') id: string, @Request() req) {
     return this.quizAssignmentsService.submitQuiz(id, req.user.id);
   }
+
+  @Patch(':id/score')
+  updateScore(@Param('id') id: string, @Body('score') score: number) {
+    return this.quizAssignmentsService.updateScore(id, score);
+  }
 }

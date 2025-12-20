@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudentAnswer } from './entities/student-answer.entity';
 import { QuizAssignment } from '../quiz-assignments/entities/quiz-assignment.entity';
-import { QuizTemplate } from '../quiz-templates/entities/quiz-template.entity';
 import { QuizAssignmentsService } from '../quiz-assignments/quiz-assignments.service';
 import { GradingService } from './grading.service';
 import { SaveAnswerDto } from './dto/save-answer.dto';
@@ -16,8 +15,6 @@ export class StudentAnswersService {
     private studentAnswersRepository: Repository<StudentAnswer>,
     @InjectRepository(QuizAssignment)
     private quizAssignmentsRepository: Repository<QuizAssignment>,
-    @InjectRepository(QuizTemplate)
-    private quizTemplatesRepository: Repository<QuizTemplate>,
     private quizAssignmentsService: QuizAssignmentsService,
     private gradingService: GradingService,
   ) {}

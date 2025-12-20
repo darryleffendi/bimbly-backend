@@ -106,9 +106,9 @@ export class AuthService {
     return user;
   }
 
-  async generateTokens(
+  generateTokens(
     user: User,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): { accessToken: string; refreshToken: string } {
     const payload = {
       sub: user.id,
       email: user.email,
