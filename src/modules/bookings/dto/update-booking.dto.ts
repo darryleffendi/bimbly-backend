@@ -12,4 +12,3 @@ export class CancelBookingDto {
   reason: string;
 }
 
-export class CompleteBookingDto {}

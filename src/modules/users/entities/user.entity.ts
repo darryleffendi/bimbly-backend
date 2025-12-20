@@ -30,10 +30,10 @@ export class User {
   @Column({ name: 'phone_number' })
   phoneNumber: string;
 
-  @Column()
+  @Column({nullable: true})
   city: string;
 
-  @Column()
+  @Column({nullable: true})
   province: string;
 
   @Column({ name: 'profile_image_url', type: 'text', nullable: true })
