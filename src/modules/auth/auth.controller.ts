@@ -15,8 +15,6 @@ import { RegisterDto } from './dto/register.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { RegisterTutorDto } from './dto/register-tutor.dto';
 import { LoginDto } from './dto/login.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UserResponseDto } from '../users/dto/user-response.dto';

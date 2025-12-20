@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, 
 import { AcademicReportsService } from './academic-reports.service';
 import { CreateAcademicReportDto } from './dto/create-academic-report.dto';
 import { UpdateAcademicReportDto } from './dto/update-academic-report.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';  
 import { getCurriculumTemplate } from './curriculum-templates';
 
 @Controller('academic-reports')
