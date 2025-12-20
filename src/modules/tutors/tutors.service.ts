@@ -40,14 +40,9 @@ export class TutorsService {
       return existingProfile;
     }
 
-    console.log('=== Creating Tutor Profile ===');
-    console.log('Certifications received:', createDto.certifications?.length ?? 0);
-    console.log('Availability schedule received:', createDto.availabilitySchedule?.length ?? 0);
-
     let processedCertifications: { name: string; fileUrl: string }[] | undefined;
     if (createDto.certifications && createDto.certifications.length > 0) {
-      processedCertifications = await this.processCertifications(createDto.certifications, userId);
-      console.log('Processed certifications:', processedCertifications);
+      processedCertifications = this.processCertifications(createDto.certifications, userId);
     }
 
     const { certifications, ...restDto } = createDto;
@@ -59,17 +54,14 @@ export class TutorsService {
     });
 
     const savedProfile = await this.tutorProfileRepository.save(profile);
-    console.log('Saved profile certifications:', savedProfile.certifications);
-    console.log('Saved profile availability:', savedProfile.availabilitySchedule);
-    console.log('==============================');
 
     return savedProfile;
   }
 
-  private async processCertifications(
+  private processCertifications(
     certifications: { name: string; fileData: string }[],
     userId: string,
-  ): Promise<{ name: string; fileUrl: string }[]> {
+  ): { name: string; fileUrl: string }[] {
     const uploadsDir = path.join(process.cwd(), 'uploads', 'certifications', userId);
 
     if (!fs.existsSync(uploadsDir)) {
@@ -216,7 +208,8 @@ export class TutorsService {
     const query = this.tutorProfileRepository
       .createQueryBuilder('tutor')
       .leftJoinAndSelect('tutor.user', 'user')
-      .where('tutor.is_approved = :approved', { approved: true });
+      .where('tutor.is_approved = :approved', { approved: true })
+      .andWhere('user.is_blocked = :blocked', { blocked: false });
 
     if (filters.subject) {
       query.andWhere(':subject = ANY(tutor.subjects)', { subject: filters.subject });
@@ -316,6 +309,10 @@ export class TutorsService {
       throw new NotFoundException('Tutor not found');
     }
 
+    if (profile.user?.isBlocked) {
+      throw new NotFoundException('Tutor not found');
+    }
+
     return new TutorPublicProfileResponseDto(profile);
   }
 
@@ -326,6 +323,10 @@ export class TutorsService {
     });
 
     if (!profile) {
+      throw new NotFoundException('Tutor not found');
+    }
+
+    if (profile.user?.isBlocked) {
       throw new NotFoundException('Tutor not found');
     }
 

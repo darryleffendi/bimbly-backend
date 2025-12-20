@@ -29,9 +29,7 @@ export class PaymentsService {
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Booking)
-    private bookingRepository: Repository<Booking>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private bookingRepository: Repository<Booking>
   ) {}
 
   getPaymentMethods(): PaymentMethodsResponseDto {
@@ -251,8 +249,8 @@ export class PaymentsService {
       },
       booking: {
         subject: payment.booking.subject,
-        bookingDate: utcToWibDate(payment.booking.startDateTime),
-        startTime: utcToWibTime(payment.booking.startDateTime),
+        bookingDate: utcToWibDate(payment.booking.startDateTime) || '',
+        startTime: utcToWibTime(payment.booking.startDateTime) || '',
         durationHours: Number(payment.booking.durationHours),
       },
       createdAt: payment.createdAt,

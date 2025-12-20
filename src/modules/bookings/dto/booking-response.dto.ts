@@ -21,8 +21,8 @@ export class BookingResponseDto {
   subtopic: string | null;
   gradeLevel: number;
   teachingMethod: TeachingMethod;
-  bookingDate: string;
-  startTime: string;
+  bookingDate: string | null;
+  startTime: string | null;
   durationHours: number;
   hourlyRate: number;
   totalPrice: number;
@@ -43,8 +43,8 @@ export class BookingResponseDto {
     this.subtopic = booking.subtopic || null;
     this.gradeLevel = booking.gradeLevel;
     this.teachingMethod = booking.teachingMethod;
-    this.bookingDate = utcToWibDate(booking.startDateTime);
-    this.startTime = utcToWibTime(booking.startDateTime);
+    this.bookingDate = booking.startDateTime ? utcToWibDate(booking.startDateTime) : null;
+    this.startTime = booking.startDateTime ? utcToWibTime(booking.startDateTime) : null;
     this.durationHours = Number(booking.durationHours);
     this.hourlyRate = Number(booking.hourlyRate);
     this.totalPrice = Number(booking.totalPrice);

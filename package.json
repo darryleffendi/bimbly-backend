@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed:tutors": "ts-node src/database/seeds/tutor.seed.ts",
     "seed:reviews": "ts-node src/database/seeds/review.seed.ts",
+    "seed:admin": "ts-node src/database/seeds/admin.seed.ts",
     "seed:all": "npm run seed:tutors && npm run seed:reviews"
   },
   "dependencies": {

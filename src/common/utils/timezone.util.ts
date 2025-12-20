@@ -5,14 +5,16 @@ export function wibToUtc(date: string, time: string): Date {
   return dateTime;
 }
 
-export function utcToWibTime(date: Date): string {
+export function utcToWibTime(date: Date): string | null {
+  if (!date) return null;
   const wibDate = new Date(date.getTime() + WIB_OFFSET_HOURS * 60 * 60 * 1000);
   const hours = wibDate.getUTCHours().toString().padStart(2, '0');
   const minutes = wibDate.getUTCMinutes().toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 }
 
-export function utcToWibDate(date: Date): string {
+export function utcToWibDate(date: Date): string | null {
+  if (!date) return null;
   const wibDate = new Date(date.getTime() + WIB_OFFSET_HOURS * 60 * 60 * 1000);
   return wibDate.toISOString().split('T')[0];
 }

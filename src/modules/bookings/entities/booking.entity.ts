@@ -56,10 +56,10 @@ export class Booking {
   })
   teachingMethod: TeachingMethod;
 
-  @Column({ name: 'start_date_time', type: 'timestamp with time zone' })
+  @Column({ name: 'start_date_time', type: 'timestamp with time zone', nullable: true })
   startDateTime: Date;
 
-  @Column({ name: 'end_date_time', type: 'timestamp with time zone' })
+  @Column({ name: 'end_date_time', type: 'timestamp with time zone', nullable: true })
   endDateTime: Date;
 
   @Column({ name: 'duration_hours', type: 'decimal', precision: 3, scale: 1 })
