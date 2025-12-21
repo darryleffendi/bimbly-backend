@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
-import { ReviewsService, ReviewsWithMeta, ReviewResponse } from './reviews.service';
+import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { ReviewResponseDto } from './dto/review-response.dto';
+import { ReviewsWithMetaDto } from './dto/reviews-with-meta.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('reviews')
@@ -9,7 +11,7 @@ export class ReviewsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Request() req, @Body() createDto: CreateReviewDto): Promise<ReviewResponse> {
+  create(@Request() req, @Body() createDto: CreateReviewDto): Promise<ReviewResponseDto> {
     return this.reviewsService.create(req.user.id, createDto);
   }
 
@@ -20,7 +22,7 @@ export class ReviewsController {
     @Query('limit') limit?: string,
     @Query('sortBy') sortBy?: 'newest' | 'oldest' | 'highest' | 'lowest',
     @Query('rating') rating?: string,
-  ): Promise<ReviewsWithMeta> {
+  ): Promise<ReviewsWithMetaDto> {
     return this.reviewsService.findByTutor(
       tutorId,
       page ? parseInt(page) : 1,

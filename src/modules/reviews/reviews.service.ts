@@ -4,35 +4,9 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { TutorProfile } from '../tutors/entities/tutor-profile.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
-
-export interface RatingDistribution {
-  star: number;
-  count: number;
-}
-
-export interface ReviewResponse {
-  reviewTitle: string;
-  reviewText: string | null;
-  rating: number;
-  createdAt: Date;
-  student: {
-    fullName: string;
-    profileImageUrl: string | null;
-  };
-}
-
-export interface ReviewsWithMeta {
-  data: ReviewResponse[];
-  meta: {
-    averageRating: number;
-    totalReviews: number;
-    ratingDistribution: RatingDistribution[];
-    currentPage: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-  };
-}
+import { ReviewResponseDto } from './dto/review-response.dto';
+import { ReviewsWithMetaDto } from './dto/reviews-with-meta.dto';
+import { RatingDistributionDto } from './dto/rating-distribution.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -43,7 +17,7 @@ export class ReviewsService {
     private tutorProfilesRepository: Repository<TutorProfile>,
   ) {}
 
-  async create(studentId: string, createDto: CreateReviewDto): Promise<ReviewResponse> {
+  async create(studentId: string, createDto: CreateReviewDto): Promise<ReviewResponseDto> {
     const tutorProfile = await this.tutorProfilesRepository.findOne({
       where: { userId: createDto.tutorId },
     });
@@ -76,7 +50,7 @@ export class ReviewsService {
       relations: ['student'],
     });
 
-    return this.mapToResponse(reviewWithStudent!);
+    return new ReviewResponseDto(reviewWithStudent!);
   }
 
   async findByTutor(
@@ -85,24 +59,20 @@ export class ReviewsService {
     limit = 10,
     sortBy: 'newest' | 'oldest' | 'highest' | 'lowest' = 'newest',
     rating?: number,
-  ): Promise<ReviewsWithMeta> {
+  ): Promise<ReviewsWithMetaDto> {
     const tutor = await this.tutorProfilesRepository.findOne({
       where: { id: tutorId },
     });
 
     if (!tutor) {
-      return {
-        data: [],
-        meta: {
-          averageRating: 0,
-          totalReviews: 0,
-          ratingDistribution: [5, 4, 3, 2, 1].map((star) => ({ star, count: 0 })),
-          currentPage: page,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPrevPage: false,
-        },
-      };
+      return new ReviewsWithMetaDto(
+        [],
+        0,
+        0,
+        [5, 4, 3, 2, 1].map((star) => new RatingDistributionDto(star, 0)),
+        page,
+        0,
+      );
     }
 
     const orderMap: Record<string, { column: string; direction: 'ASC' | 'DESC' }> = {
@@ -132,18 +102,14 @@ export class ReviewsService {
     const ratingDistribution = await this.getRatingDistribution(tutor.userId);
     const totalPages = Math.ceil(total / limit);
 
-    return {
-      data: reviews.map((review) => this.mapToResponse(review)),
-      meta: {
-        averageRating: Number(tutor.averageRating) || 0,
-        totalReviews: Number(tutor.totalReviews) || 0,
-        ratingDistribution,
-        currentPage: page,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
+    return new ReviewsWithMetaDto(
+      reviews.map((review) => new ReviewResponseDto(review)),
+      Number(tutor.averageRating) || 0,
+      Number(tutor.totalReviews) || 0,
+      ratingDistribution,
+      page,
+      totalPages,
+    );
   }
 
   async hasReviewedTutor(studentId: string, tutorUserId: string): Promise<{ hasReviewed: boolean }> {
@@ -167,7 +133,7 @@ export class ReviewsService {
     await this.updateTutorRating(tutorUserId);
   }
 
-  private async getRatingDistribution(tutorId: string): Promise<RatingDistribution[]> {
+  private async getRatingDistribution(tutorId: string): Promise<RatingDistributionDto[]> {
     const result = await this.reviewsRepository
       .createQueryBuilder('review')
       .select('review.rating', 'star')
@@ -176,15 +142,10 @@ export class ReviewsService {
       .groupBy('review.rating')
       .getRawMany();
 
-    const distribution: RatingDistribution[] = [5, 4, 3, 2, 1].map((star) => {
+    return [5, 4, 3, 2, 1].map((star) => {
       const found = result.find((r) => parseInt(r.star) === star);
-      return {
-        star,
-        count: found ? parseInt(found.count) : 0,
-      };
+      return new RatingDistributionDto(star, found ? parseInt(found.count) : 0);
     });
-
-    return distribution;
   }
 
   private async updateTutorRating(tutorUserId: string): Promise<void> {
@@ -212,16 +173,4 @@ export class ReviewsService {
     );
   }
 
-  private mapToResponse(review: Review): ReviewResponse {
-    return {
-      reviewTitle: review.reviewTitle,
-      reviewText: review.reviewText || null,
-      rating: review.rating,
-      createdAt: review.createdAt,
-      student: {
-        fullName: review.student?.fullName || 'Anonymous',
-        profileImageUrl: review.student?.profileImageUrl || null,
-      },
-    };
-  }
 }
