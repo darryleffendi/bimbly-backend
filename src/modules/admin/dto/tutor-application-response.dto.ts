@@ -1,7 +1,7 @@
 import { TutorApplication } from '../entities/tutor-application.entity';
 import { SafeUserDto } from '../../users/dto/safe-user.dto';
 
-class TutorProfileInApplicationDto {
+export class TutorProfileInApplicationDto {
   id: string;
   bio: string;
   educationBackground: string;
