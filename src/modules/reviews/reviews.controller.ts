@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewResponseDto } from './dto/review-response.dto';
@@ -39,11 +39,5 @@ export class ReviewsController {
     @Request() req,
   ): Promise<{ hasReviewed: boolean }> {
     return this.reviewsService.hasReviewedTutor(req.user.id, tutorUserId);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @Request() req): Promise<void> {
-    return this.reviewsService.remove(id, req.user.id);
   }
 }
