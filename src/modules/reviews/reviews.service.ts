@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
@@ -117,20 +117,6 @@ export class ReviewsService {
       where: { studentId, tutorId: tutorUserId },
     });
     return { hasReviewed: !!review };
-  }
-
-  async remove(id: string, studentId: string): Promise<void> {
-    const review = await this.reviewsRepository.findOne({
-      where: { id, studentId },
-    });
-
-    if (!review) {
-      throw new NotFoundException('Review not found');
-    }
-
-    const tutorUserId = review.tutorId;
-    await this.reviewsRepository.remove(review);
-    await this.updateTutorRating(tutorUserId);
   }
 
   private async getRatingDistribution(tutorId: string): Promise<RatingDistributionDto[]> {
