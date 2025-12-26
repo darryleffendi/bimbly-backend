@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 @Entity('tutor_profiles')
 export class TutorProfile {
@@ -31,8 +32,8 @@ export class TutorProfile {
   @Column({ name: 'grade_levels', type: 'integer', array: true })
   gradeLevels: number[];
 
-  @Column({ name: 'teaching_methods', type: 'enum', enum: ['online', 'offline'], array: true })
-  teachingMethods: ('online' | 'offline')[];
+  @Column({ name: 'teaching_methods', type: 'enum', enum: TeachingMethod, array: true })
+  teachingMethods: TeachingMethod[];
 
   @Column({ name: 'hourly_rate', type: 'decimal', precision: 10, scale: 2 })
   hourlyRate: number;

@@ -1,6 +1,7 @@
-import { IsString, IsOptional, MinLength, MaxLength, Matches, IsInt, Min, Max, IsArray, ArrayMinSize, ArrayMaxSize, IsNumber, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, MinLength, MaxLength, Matches, IsInt, Min, Max, IsArray, ArrayMinSize, ArrayMaxSize, IsNumber, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AvailabilitySlotDto, ValidateAvailabilitySlots } from '../../tutors/dto/availability-schedule.dto';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -87,7 +88,8 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  teachingMethods?: string[];
+  @IsEnum(TeachingMethod, { each: true })
+  teachingMethods?: TeachingMethod[];
 
   @IsOptional()
   @IsNumber()

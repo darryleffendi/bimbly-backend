@@ -8,6 +8,7 @@ import {
   IsEnum,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 export class SearchTutorsDto {
   @IsOptional()
@@ -42,8 +43,8 @@ export class SearchTutorsDto {
   maxPrice?: number;
 
   @IsOptional()
-  @IsEnum(['online', 'offline'])
-  teachingMethod?: 'online' | 'offline';
+  @IsEnum(TeachingMethod)
+  teachingMethod?: TeachingMethod;
 
   @IsOptional()
   @Type(() => Number)
@@ -87,7 +88,7 @@ export class TutorListItemDto {
   bio: string;
   subjects: string[];
   gradeLevels: number[];
-  teachingMethods: ('online' | 'offline')[];
+  teachingMethods: TeachingMethod[];
   hourlyRate: number;
   city: string;
   province: string;

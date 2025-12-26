@@ -1,6 +1,7 @@
 import { IsInt, IsString, IsArray, IsEnum, IsNumber, Min, Max, MinLength, MaxLength, ArrayMinSize, ArrayMaxSize, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AvailabilitySlotDto, ValidateAvailabilitySlots } from './availability-schedule.dto';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 class CertificationData {
   @IsString({ message: 'Certification name must be a string' })
@@ -43,8 +44,8 @@ export class CreateTutorProfileDto {
 
   @IsArray({ message: 'Teaching methods must be an array' })
   @ArrayMinSize(1, { message: 'At least 1 teaching method is required' })
-  @IsEnum(['online', 'offline'], { each: true, message: 'Teaching method must be either online or offline' })
-  teachingMethods: ('online' | 'offline')[];
+  @IsEnum(TeachingMethod, { each: true, message: 'Teaching method must be either online or offline' })
+  teachingMethods: TeachingMethod[];
 
   @IsNumber({}, { message: 'Hourly rate must be a number' })
   @Min(50000, { message: 'Hourly rate must be at least Rp 50,000' })

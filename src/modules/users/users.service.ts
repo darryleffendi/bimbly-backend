@@ -146,7 +146,7 @@ export class UsersService {
         hasTutorFields = true;
       }
       if (updateProfileDto.teachingMethods !== undefined) {
-        tutorFields.teachingMethods = updateProfileDto.teachingMethods as ('online' | 'offline')[];
+        tutorFields.teachingMethods = updateProfileDto.teachingMethods;
         hasTutorFields = true;
       }
       if (updateProfileDto.hourlyRate !== undefined) {
