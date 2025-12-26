@@ -1,6 +1,7 @@
 import { User } from '../entities/user.entity';
 import { StudentProfile } from '../../students/entities/student-profile.entity';
 import { TutorProfile } from '../../tutors/entities/tutor-profile.entity';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 export class CombinedProfileResponseDto {
   email: string;
@@ -21,7 +22,7 @@ export class CombinedProfileResponseDto {
   specializations?: string[];
   subjects?: string[];
   gradeLevels?: number[];
-  teachingMethods?: ('online' | 'offline')[];
+  teachingMethods?: TeachingMethod[];
   hourlyRate?: number;
   certifications?: { name: string; fileUrl: string }[];
   availabilitySchedule?: { start: string; end: string; dayOfWeek: number }[];

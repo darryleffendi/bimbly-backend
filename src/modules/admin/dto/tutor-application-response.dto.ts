@@ -1,5 +1,6 @@
 import { TutorApplication } from '../entities/tutor-application.entity';
 import { SafeUserDto } from '../../users/dto/safe-user.dto';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 export class TutorProfileInApplicationDto {
   id: string;
@@ -8,7 +9,7 @@ export class TutorProfileInApplicationDto {
   teachingExperienceYears: number;
   subjects: string[];
   gradeLevels: number[];
-  teachingMethods: ('online' | 'offline')[];
+  teachingMethods: TeachingMethod[];
   hourlyRate: number;
   certifications?: { name: string; fileUrl: string }[];
   updatedAt?: Date;

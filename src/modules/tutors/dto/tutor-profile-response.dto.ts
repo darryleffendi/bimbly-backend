@@ -1,4 +1,5 @@
 import { TutorProfile } from '../entities/tutor-profile.entity';
+import { TeachingMethod } from '../../bookings/entities/booking.entity';
 
 export class TutorProfileResponseDto {
   bio: string;
@@ -7,7 +8,7 @@ export class TutorProfileResponseDto {
   specializations?: string[];
   subjects: string[];
   gradeLevels: number[];
-  teachingMethods: ('online' | 'offline')[];
+  teachingMethods: TeachingMethod[];
   hourlyRate: number;
   certifications?: { name: string; fileUrl: string }[];
   availabilitySchedule?: { start: string; end: string; dayOfWeek: number }[];
