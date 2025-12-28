@@ -39,12 +39,6 @@ export class User {
   @Column({ name: 'profile_image_url', type: 'text', nullable: true })
   profileImageUrl?: string;
 
-  @Column({ name: 'reset_token', nullable: true })
-  resetToken?: string;
-
-  @Column({ name: 'reset_token_expires', nullable: true })
-  resetTokenExpires?: Date;
-
   @Column({ name: 'is_blocked', default: false })
   isBlocked: boolean;
 

@@ -46,10 +46,6 @@ export class UsersService {
     return this.findById(id);
   }
 
-  async findByResetToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { resetToken: token } });
-  }
-
   async uploadAvatar(userId: string, base64Image: string): Promise<string> {
     const user = await this.findById(userId);
     user.profileImageUrl = base64Image;
