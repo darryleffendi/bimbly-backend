@@ -2,9 +2,9 @@ import { IsString, MinLength } from 'class-validator';
 
 export class ResetPasswordDto {
   @IsString()
-  token: string;
+  currentPassword: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @MinLength(8, { message: 'New password must be at least 8 characters long' })
   newPassword: string;
 }

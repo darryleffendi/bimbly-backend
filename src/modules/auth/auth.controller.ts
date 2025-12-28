@@ -118,10 +118,15 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(
+    @Request() req,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
     await this.authService.resetPassword(
-      resetPasswordDto.token,
+      req.user.id,
+      resetPasswordDto.currentPassword,
       resetPasswordDto.newPassword,
     );
 

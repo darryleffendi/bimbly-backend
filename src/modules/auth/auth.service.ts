@@ -70,23 +70,23 @@ export class AuthService {
     };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    const user = await this.usersService.findByResetToken(token);
+  async resetPassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
 
-    if (!user || !user.resetTokenExpires) {
-      throw new BadRequestException('Reset link is invalid or expired');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
 
-    if (user.resetTokenExpires < new Date()) {
-      throw new BadRequestException('Reset link has expired');
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await this.usersService.update(user.id, {
       passwordHash,
-      resetToken: undefined,
-      resetTokenExpires: undefined,
     });
   }
 
