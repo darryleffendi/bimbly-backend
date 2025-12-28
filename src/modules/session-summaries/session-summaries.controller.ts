@@ -3,6 +3,8 @@ import { SessionSummariesService } from './session-summaries.service';
 import { CreateSessionSummaryDto } from './dto/create-session-summary.dto';
 import { UpdateSessionSummaryDto } from './dto/update-session-summary.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('session-summaries')
 @UseGuards(JwtAuthGuard)
@@ -10,6 +12,8 @@ export class SessionSummariesController {
   constructor(private readonly sessionSummariesService: SessionSummariesService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles('tutor')
   create(@Request() req, @Body() createDto: CreateSessionSummaryDto) {
     return this.sessionSummariesService.create(req.user.id, createDto);
   }
@@ -30,6 +34,8 @@ export class SessionSummariesController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('tutor')
   update(@Param('id') id: string, @Request() req, @Body() updateDto: UpdateSessionSummaryDto) {
     return this.sessionSummariesService.update(id, req.user.id, updateDto);
   }

@@ -51,7 +51,7 @@ export class AuthService {
 
   async login(
     loginDto: LoginDto,
-  ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
+  ): Promise<{ accessToken: string; user: User }> {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
     if (!user) {
@@ -62,10 +62,10 @@ export class AuthService {
       throw new ForbiddenException('Your account has been blocked. Please contact support for assistance.');
     }
 
-    const tokens = await this.generateTokens(user);
+    const accessToken = this.generateToken(user);
 
     return {
-      ...tokens,
+      accessToken,
       user,
     };
   }
@@ -90,6 +90,7 @@ export class AuthService {
     });
   }
 
+
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
 
@@ -106,9 +107,7 @@ export class AuthService {
     return user;
   }
 
-  generateTokens(
-    user: User,
-  ): { accessToken: string; refreshToken: string } {
+  generateToken(user: User): string {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -120,15 +119,7 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_EXPIRATION'),
     });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return accessToken;
   }
 
   async getUserFromToken(userId: string): Promise<User> {
@@ -161,7 +152,7 @@ export class AuthService {
       currentGrade: registerDto.studentProfile.currentGrade,
       schoolName: registerDto.studentProfile.schoolName,
       address: registerDto.studentProfile.address,
-    });
+    }); 
 
     return user;
   }

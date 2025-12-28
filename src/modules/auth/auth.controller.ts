@@ -28,8 +28,7 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.authService.register(registerDto);
 
-    const { passwordHash, resetToken, ...userResponse } =
-      user;
+    const { passwordHash, ...userResponse } = user;
 
     return {
       message: 'Registration successful. Please check your email to verify your account.',
@@ -42,8 +41,7 @@ export class AuthController {
   async registerStudent(@Body() registerDto: RegisterStudentDto) {
     const user = await this.authService.registerStudent(registerDto);
 
-    const { passwordHash, resetToken, ...userResponse } =
-      user;
+    const { passwordHash, ...userResponse } = user;
 
     return {
       message: 'Registration successful. Please check your email to verify your account.',
@@ -56,8 +54,7 @@ export class AuthController {
   async registerTutor(@Body() registerDto: RegisterTutorDto) {
     const user = await this.authService.registerTutor(registerDto);
 
-    const { passwordHash, resetToken, ...userResponse } =
-      user;
+    const { passwordHash, ...userResponse } = user;
 
     return {
       message: 'Registration successful. Please check your email to verify your account. Your tutor profile will be reviewed by our team.',
@@ -71,8 +68,7 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { accessToken, refreshToken, user } =
-      await this.authService.login(loginDto);
+    const { accessToken, user } = await this.authService.login(loginDto);
 
     response.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -81,20 +77,11 @@ export class AuthController {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000,
-    });
-
-    const { passwordHash, resetToken, ...userResponse } =
-      user;
+    const { passwordHash, ...userResponse } = user;
 
     return {
       message: 'Login successful',
       accessToken,
-      refreshToken,
       user: userResponse,
     };
   }
@@ -104,7 +91,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('access_token');
-    response.clearCookie('refresh_token');
 
     return {
       message: 'Logged out successfully',
@@ -131,7 +117,7 @@ export class AuthController {
     );
 
     return {
-      message: 'Password reset successfully',
+      message: 'Password changed successfully',
     };
   }
 }
