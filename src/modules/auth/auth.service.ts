@@ -70,20 +70,16 @@ export class AuthService {
     };
   }
 
-  async resetPassword(userId: string, oldPassword: string, newPassword: string, confirmPassword: string): Promise<void> {
-    if (newPassword !== confirmPassword) {
-      throw new BadRequestException('New password and confirm password do not match');
-    }
-
+  async resetPassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     const user = await this.usersService.findById(userId);
 
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new UnauthorizedException('User not found');
     }
 
-    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
 
-    if (!isOldPasswordValid) {
+    if (!isCurrentPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
@@ -93,6 +89,7 @@ export class AuthService {
       passwordHash,
     });
   }
+
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);

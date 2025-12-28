@@ -131,15 +131,9 @@ export class TutorsService {
   }
 
   async updateProfile(userId: string, updateDto: UpdateTutorProfileDto): Promise<TutorProfile> {
-    console.log('=== Updating Tutor Profile ===');
-    console.log('User ID:', userId);
-    console.log('Update DTO:', updateDto);
-
     let profile = await this.tutorProfileRepository.findOne({
       where: { userId },
     });
-
-    console.log('Profile before update:', profile?.updatedAt);
 
     if (!profile) {
       profile = this.tutorProfileRepository.create({
@@ -151,8 +145,6 @@ export class TutorsService {
     }
 
     const savedProfile = await this.tutorProfileRepository.save(profile);
-    console.log('Profile after save:', savedProfile.updatedAt);
-    console.log('==============================');
 
     return savedProfile;
   }
