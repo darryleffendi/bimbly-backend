@@ -169,8 +169,6 @@ export class ChatService {
     senderId: string,
     text: string,
   ): Promise<MessageResponseDto> {
-    const conversation = await this.getConversationById(conversationId, senderId);
-
     const sender = await this.userRepository.findOne({
       where: { id: senderId },
     });

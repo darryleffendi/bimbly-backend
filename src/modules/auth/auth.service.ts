@@ -51,7 +51,7 @@ export class AuthService {
 
   async login(
     loginDto: LoginDto,
-  ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
+  ): Promise<{ accessToken: string; user: User }> {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
     if (!user) {
@@ -62,31 +62,35 @@ export class AuthService {
       throw new ForbiddenException('Your account has been blocked. Please contact support for assistance.');
     }
 
-    const tokens = await this.generateTokens(user);
+    const accessToken = this.generateToken(user);
 
     return {
-      ...tokens,
+      accessToken,
       user,
     };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    const user = await this.usersService.findByResetToken(token);
-
-    if (!user || !user.resetTokenExpires) {
-      throw new BadRequestException('Reset link is invalid or expired');
+  async resetPassword(userId: string, oldPassword: string, newPassword: string, confirmPassword: string): Promise<void> {
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('New password and confirm password do not match');
     }
 
-    if (user.resetTokenExpires < new Date()) {
-      throw new BadRequestException('Reset link has expired');
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await this.usersService.update(user.id, {
       passwordHash,
-      resetToken: undefined,
-      resetTokenExpires: undefined,
     });
   }
 
@@ -106,9 +110,7 @@ export class AuthService {
     return user;
   }
 
-  generateTokens(
-    user: User,
-  ): { accessToken: string; refreshToken: string } {
+  generateToken(user: User): string {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -120,15 +122,7 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_EXPIRATION'),
     });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return accessToken;
   }
 
   async getUserFromToken(userId: string): Promise<User> {
@@ -161,7 +155,7 @@ export class AuthService {
       currentGrade: registerDto.studentProfile.currentGrade,
       schoolName: registerDto.studentProfile.schoolName,
       address: registerDto.studentProfile.address,
-    });
+    }); 
 
     return user;
   }
