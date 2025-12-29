@@ -112,9 +112,8 @@ export class AuthController {
   ) {
     await this.authService.resetPassword(
       req.user.id,
-      resetPasswordDto.oldPassword,
+      resetPasswordDto.currentPassword,
       resetPasswordDto.newPassword,
-      resetPasswordDto.confirmPassword,
     );
 
     return {
