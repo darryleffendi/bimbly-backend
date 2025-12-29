@@ -7,6 +7,8 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RejectApplicationDto } from './dto/reject-application.dto';
 import { BlockUserDto } from './dto/block-user.dto';
 import { RequestInfoDto } from './dto/request-info.dto';
+import { BlockedUserResponseDto } from './dto/blocked-user-response.dto';
+import { UnblockedUserResponseDto } from './dto/unblocked-user-response.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -63,12 +65,12 @@ export class AdminController {
   }
 
   @Patch('users/:id/block')
-  async blockUser(@Param('id') id: string, @Body() dto: BlockUserDto) {
+  async blockUser(@Param('id') id: string, @Body() dto: BlockUserDto): Promise<BlockedUserResponseDto> {
     return this.adminService.blockUser(id, dto.blockReason);
   }
 
   @Patch('users/:id/unblock')
-  async unblockUser(@Param('id') id: string) {
+  async unblockUser(@Param('id') id: string): Promise<UnblockedUserResponseDto> {
     return this.adminService.unblockUser(id);
   }
 }
