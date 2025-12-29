@@ -5,6 +5,8 @@ import { User } from '../users/entities/user.entity';
 import { TutorProfile } from '../tutors/entities/tutor-profile.entity';
 import { StudentProfile } from '../students/entities/student-profile.entity';
 import { TutorApplication } from './entities/tutor-application.entity';
+import { BlockedUserResponseDto } from './dto/blocked-user-response.dto';
+import { UnblockedUserResponseDto } from './dto/unblocked-user-response.dto';
 
 @Injectable()
 export class AdminService {
@@ -64,7 +66,7 @@ export class AdminService {
     });
   }
 
-  async blockUser(userId: string, blockReason: string) {
+  async blockUser(userId: string, blockReason: string): Promise<BlockedUserResponseDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -80,18 +82,10 @@ export class AdminService {
 
     await this.usersRepository.save(user);
 
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      userType: user.userType,
-      isBlocked: user.isBlocked,
-      blockedAt: user.blockedAt,
-      blockReason: user.blockReason,
-    };
+    return new BlockedUserResponseDto(user);
   }
 
-  async unblockUser(userId: string) {
+  async unblockUser(userId: string): Promise<UnblockedUserResponseDto> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -107,12 +101,6 @@ export class AdminService {
 
     await this.usersRepository.save(user);
 
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      userType: user.userType,
-      isBlocked: user.isBlocked,
-    };
+    return new UnblockedUserResponseDto(user);
   }
 }
