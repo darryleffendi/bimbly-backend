@@ -54,18 +54,6 @@ export class AcademicReportsService {
     return this.academicReportsRepository.save(report);
   }
 
-  async remove(id: string, studentId: string): Promise<void> {
-    const report = await this.academicReportsRepository.findOne({
-      where: { id, studentId },
-    });
-
-    if (!report) {
-      throw new NotFoundException('Academic report not found');
-    }
-
-    await this.academicReportsRepository.remove(report);
-  }
-
   calculateAverageScore(subtopicScores: Record<string, number>): number {
     const scores = Object.values(subtopicScores);
     if (scores.length === 0) return 0;

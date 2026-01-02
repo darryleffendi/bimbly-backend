@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, IsInt, Min, IsBoolean, ValidateNested, IsIn } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray, IsInt, Min, ValidateNested, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class QuizQuestionDto {
@@ -44,12 +44,4 @@ export class CreateQuizTemplateDto {
   @ValidateNested({ each: true })
   @Type(() => QuizQuestionDto)
   questions: QuizQuestionDto[];
-
-  @IsInt()
-  @IsOptional()
-  durationMinutes?: number;
-
-  @IsBoolean()
-  @IsOptional()
-  randomizeQuestions?: boolean;
 }
