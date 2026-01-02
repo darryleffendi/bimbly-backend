@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { QuizAssignment, QuizAssignmentStatus } from './entities/quiz-assignment.entity';
 import { QuizTemplate } from '../quiz-templates/entities/quiz-template.entity';
+import { StudentAnswer } from '../student-answers/entities/student-answer.entity';
 import { CreateQuizAssignmentDto } from './dto/create-quiz-assignment.dto';
+import { CompleteGradingDto } from './dto/complete-grading.dto';
 
 @Injectable()
 export class QuizAssignmentsService {
@@ -12,6 +14,8 @@ export class QuizAssignmentsService {
     private quizAssignmentsRepository: Repository<QuizAssignment>,
     @InjectRepository(QuizTemplate)
     private quizTemplatesRepository: Repository<QuizTemplate>,
+    @InjectRepository(StudentAnswer)
+    private studentAnswersRepository: Repository<StudentAnswer>,
   ) {}
 
   async create(tutorId: string, createDto: CreateQuizAssignmentDto): Promise<QuizAssignment> {
@@ -114,6 +118,51 @@ export class QuizAssignmentsService {
     }
 
     assignment.score = score;
+    assignment.status = QuizAssignmentStatus.GRADED;
+
+    return this.quizAssignmentsRepository.save(assignment);
+  }
+
+  async completeGrading(id: string, tutorId: string, completeGradingDto: CompleteGradingDto): Promise<QuizAssignment> {
+    const assignment = await this.quizAssignmentsRepository.findOne({
+      where: { id, tutorId },
+    });
+
+    if (!assignment) {
+      throw new ForbiddenException('You can only grade your own assignments');
+    }
+
+    for (const gradeInput of completeGradingDto.grades) {
+      const answer = await this.studentAnswersRepository.findOne({
+        where: { assignmentId: id, questionIndex: gradeInput.questionIndex },
+      });
+
+      if (!answer) {
+        throw new NotFoundException(`Answer for question ${gradeInput.questionIndex} not found`);
+      }
+
+      if (answer.questionType === 'essay') {
+        if (gradeInput.pointsEarned > answer.questionPoints) {
+          throw new BadRequestException(`Points earned cannot exceed question points for question ${gradeInput.questionIndex}`);
+        }
+
+        answer.pointsEarned = gradeInput.pointsEarned;
+        answer.isCorrect = gradeInput.pointsEarned === answer.questionPoints;
+        answer.tutorFeedback = gradeInput.tutorFeedback;
+
+        await this.studentAnswersRepository.save(answer);
+      }
+    }
+
+    const allAnswers = await this.studentAnswersRepository.find({
+      where: { assignmentId: id },
+    });
+
+    const totalPoints = allAnswers.reduce((sum, a) => sum + a.questionPoints, 0);
+    const earnedPoints = allAnswers.reduce((sum, a) => sum + (a.pointsEarned || 0), 0);
+    const score = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+
+    assignment.score = Math.round(score * 100) / 100;
     assignment.status = QuizAssignmentStatus.GRADED;
 
     return this.quizAssignmentsRepository.save(assignment);

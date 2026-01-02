@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { QuizAssignmentsService } from './quiz-assignments.service';
 import { CreateQuizAssignmentDto } from './dto/create-quiz-assignment.dto';
+import { CompleteGradingDto } from './dto/complete-grading.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('quiz-assignments')
@@ -41,5 +42,10 @@ export class QuizAssignmentsController {
   @Patch(':id/score')
   updateScore(@Param('id') id: string, @Body('score') score: number) {
     return this.quizAssignmentsService.updateScore(id, score);
+  }
+
+  @Post(':id/complete-grading')
+  completeGrading(@Param('id') id: string, @Request() req, @Body() completeGradingDto: CompleteGradingDto) {
+    return this.quizAssignmentsService.completeGrading(id, req.user.tutorProfileId, completeGradingDto);
   }
 }

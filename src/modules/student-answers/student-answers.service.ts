@@ -100,10 +100,7 @@ export class StudentAnswersService {
     answer.isCorrect = gradeDto.pointsEarned === answer.questionPoints;
     answer.tutorFeedback = gradeDto.tutorFeedback;
 
-    const savedAnswer = await this.studentAnswersRepository.save(answer);
-    await this.calculateAndUpdateScore(assignmentId);
-
-    return savedAnswer;
+    return this.studentAnswersRepository.save(answer);
   }
 
   async calculateAndUpdateScore(assignmentId: string): Promise<void> {
