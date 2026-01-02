@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { AcademicReportsService } from './academic-reports.service';
 import { CreateAcademicReportDto } from './dto/create-academic-report.dto';
 import { UpdateAcademicReportDto } from './dto/update-academic-report.dto';
@@ -35,12 +35,6 @@ export class AcademicReportsController {
       ...report,
       averageScore: this.academicReportsService.calculateAverageScore(report.subtopicScores),
     };
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
-    await this.academicReportsService.remove(id, req.user.id);
-    return { message: 'Report deleted successfully' };
   }
 
   @Get('curriculum-templates')

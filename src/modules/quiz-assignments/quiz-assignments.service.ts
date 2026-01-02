@@ -75,7 +75,7 @@ export class QuizAssignmentsService {
       throw new BadRequestException('Quiz has already been started');
     }
 
-    if (assignment.deadline && new Date() > assignment.deadline) {
+    if (assignment.deadline && new Date() > new Date(assignment.deadline)) {
       throw new BadRequestException('Quiz deadline has passed');
     }
 

@@ -39,12 +39,6 @@ export class QuizTemplate {
   @Column({ name: 'total_points', type: 'integer' })
   totalPoints: number;
 
-  @Column({ name: 'duration_minutes', type: 'integer', nullable: true })
-  durationMinutes?: number;
-
-  @Column({ name: 'randomize_questions', type: 'boolean', default: false })
-  randomizeQuestions: boolean;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
