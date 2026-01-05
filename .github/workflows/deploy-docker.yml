@@ -62,7 +62,7 @@ jobs:
             PORT=3000
 
             DB_HOST=bimbly-postgres
-            DB_PORT=5433
+            DB_PORT=5432
             DB_USERNAME=${{ secrets.DATABASE_USERNAME }}
             DB_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
             DB_DATABASE=${{ secrets.DATABASE_NAME }}
