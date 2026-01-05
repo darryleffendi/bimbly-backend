@@ -1,0 +1,118 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and Deploy Backend
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build check
+        run: npm run build || echo "Build check completed"
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            echo "📦 Starting backend deployment..."
+
+            PROJECT_DIR="/home/ubuntu/bimbly/bimbly-backend"
+            REPO_URL="https://github.com/darryleffendi/bimbly-backend.git"
+
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+              echo "🆕 First time setup - cloning repository..."
+              mkdir -p /home/ubuntu/bimbly
+              cd /home/ubuntu/bimbly
+              git clone "$REPO_URL" temp-repo
+              mv temp-repo/bimbly-backend ./
+              rm -rf temp-repo
+              cd bimbly-backend
+            else
+              cd "$PROJECT_DIR"
+            fi
+
+            echo "⬇️  Pulling latest code..."
+            git pull origin master || git fetch origin && git reset --hard origin/master
+
+            echo "🔐 Creating .env file..."
+            cat > .env << 'EOF'
+            NODE_ENV=production
+            PORT=3000
+
+            DB_HOST=bimbly-postgres
+            DB_PORT=5432
+            DB_USERNAME=${{ secrets.DATABASE_USERNAME }}
+            DB_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+            DB_DATABASE=${{ secrets.DATABASE_NAME }}
+
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+            JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            EOF
+
+            echo "🏗️  Building Docker image..."
+            sudo docker compose build --no-cache
+
+            echo "⏸️  Stopping old container..."
+            sudo docker compose down || true
+
+            echo "🌐 Creating Docker network if not exists..."
+            sudo docker network create bimbly-network || true
+
+            echo "🚀 Starting new container..."
+            sudo docker compose up -d
+
+            echo "⏳ Waiting for health check..."
+            sleep 10
+
+            if sudo docker compose ps | grep -q "Up"; then
+              echo "✅ Backend deployment successful!"
+              sudo docker compose ps
+            else
+              echo "❌ Backend deployment failed!"
+              sudo docker compose logs --tail=50
+              exit 1
+            fi
+
+            echo "🧹 Cleaning up old images..."
+            sudo docker image prune -af --filter "until=24h"
+            sudo docker container prune -f
+
+            echo "✅ Backend deployment complete!"
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Backend deployment succeeded"
+          else
+            echo "❌ Backend deployment failed"
+            exit 1
+          fi

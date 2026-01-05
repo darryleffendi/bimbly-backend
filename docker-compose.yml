@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  bimbly-postgres:
+    image: postgres:15-alpine
+    container_name: bimbly-postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - bimbly-network
+
+  bimbly-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bimbly-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - bimbly-postgres
+    restart: unless-stopped
+    networks:
+      - bimbly-network
+
+volumes:
+  postgres_data:
+
+networks:
+  bimbly-network:
+    external: true
