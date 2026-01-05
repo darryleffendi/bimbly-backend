@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
   bimbly-postgres:
     image: postgres:15-alpine
     container_name: bimbly-postgres
     environment:
-      POSTGRES_USER: ${DATABASE_USERNAME}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
       - "5433:5432"
     volumes:
