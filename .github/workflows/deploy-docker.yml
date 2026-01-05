@@ -57,7 +57,7 @@ jobs:
             git pull origin master || git fetch origin && git reset --hard origin/master
 
             echo "🔐 Creating .env file..."
-            cat > .env << 'EOF'
+            cat > .env << EOF
             NODE_ENV=production
             PORT=3000
 
