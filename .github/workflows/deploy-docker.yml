@@ -47,9 +47,7 @@ jobs:
               echo "🆕 First time setup - cloning repository..."
               mkdir -p /home/ubuntu/bimbly
               cd /home/ubuntu/bimbly
-              git clone "$REPO_URL" temp-repo
-              mv temp-repo/bimbly-backend ./
-              rm -rf temp-repo
+              git clone "$REPO_URL" bimbly-backend
               cd bimbly-backend
             else
               cd "$PROJECT_DIR"
